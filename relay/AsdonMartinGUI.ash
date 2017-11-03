@@ -6814,7 +6814,7 @@ buffer generateBuffText()
 		//out.append(HTMLGenerateTagPrefix("div", mapMake("style", "margin-left:auto;margin-right:auto;")));
 		out.append(HTMLGenerateTagPrefix("div", mapMake("style", "display:table;margin-top:2px;margin-bottom:2px;"))); //margin-left:auto;margin-right:auto;
 		out.append(HTMLGenerateTagPrefix("div", mapMake("style", "display:table-row;")));
-		out.append(HTMLGenerateDivOfStyle("<img src=\"" + image_url + "\">", "display:table-cell;vertical-align:middle;")); //mix-blend-mode:multiply;
+		out.append(HTMLGenerateDivOfStyle("<img src=\"" + image_url + "\">", "display:table-cell;vertical-align:middle;mix-blend-mode:multiply;"));
 		out.append(HTMLGenerateDivOfStyle(description, "display:table-cell;vertical-align:middle;padding-left:5px;"));
 		out.append("</div>"); out.append("</div>"); //secondary table
 		//out.append("</div>"); //r_centre
@@ -7247,7 +7247,7 @@ buffer generateFuelText()
             out.append("</div>");
         }
         
-		out.append(HTMLGenerateDivOfStyle("<img src=\"images/itemimages/" + f.fuel.image + "\">", "display:table-cell;width:30px;")); // style=\"mix-blend-mode:multiply;\"
+		out.append(HTMLGenerateDivOfStyle("<img src=\"images/itemimages/" + f.fuel.image + "\" style=\"mix-blend-mode:multiply;\">", "display:table-cell;width:30px;"));
 		out.append(HTMLGenerateDivOfStyle(fuel_description, "display:table-cell;vertical-align:middle;"));
 		out.append("</div>"); out.append("</div>"); //secondary table
         out.append("</div>");
