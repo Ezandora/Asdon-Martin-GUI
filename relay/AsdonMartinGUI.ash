@@ -257,6 +257,14 @@ void listPrepend(location [int] list, location entry)
 	list[position] = entry;
 }
 
+void listPrepend(item [int] list, item entry)
+{
+    int position = 0;
+    while (list contains position)
+        position -= 1;
+    list[position] = entry;
+}
+
 
 void listClear(string [int] list)
 {
@@ -1433,7 +1441,7 @@ string HTMLGreyOutTextUnlessTrue(string text, boolean conditional)
     return HTMLGenerateSpanFont(text, "gray");
 }
 //These settings are for development. Don't worry about editing them.
-string __version = "1.4.32";
+string __version = "1.4.33";
 
 //Debugging:
 boolean __setting_debug_mode = false;
@@ -2224,6 +2232,16 @@ boolean Vec2fValueInRange(Vec2f v, float value)
     return false;
 }
 
+Vec2f Vec2fMultiply(Vec2f v, float c)
+{
+	return Vec2fMake(v.x * c, v.y * c);
+}
+Vec2f Vec2fAdd(Vec2f v, float c)
+{
+    return Vec2fMake(v.x + c, v.y + c);
+}
+
+
 
 string Vec2fDescription(Vec2f v)
 {
@@ -2626,6 +2644,7 @@ boolean parseDatafileItem(int [item] out, string item_name)
     return true;
 }
 
+
 Record ConcoctionMapEntry
 {
     //Only way I know how to parse this file with file_to_map. string [int] won't work, string [string] won't...
@@ -2841,6 +2860,12 @@ int [item] get_ingredients_fast(item it)
 boolean item_is_purchasable_from_a_store(item it)
 {
     return __item_is_purchasable_from_a_store[it];
+}
+
+boolean item_cannot_be_asdon_martined_because_it_was_purchased_from_a_store(item it)
+{
+	if ($items[wasabi pocky,tobiko pocky,natto pocky,wasabi-infused sake,tobiko-infused sake,natto-infused sake] contains it) return false;
+	return it.item_is_purchasable_from_a_store();
 }
 
 void testItemIngredients()
@@ -4115,7 +4140,7 @@ int stringCountSubstringMatches(string str, string substring)
 
 effect to_effect(item it)
 {
-	return effect_modifier(it, "effect");
+	return it.effect_modifier("effect");
 }
 
 
@@ -4696,6 +4721,7 @@ static
     __banish_source_length["beancannon"] = -1;
     __banish_source_length["KGB tranquilizer dart"] = 20;
     __banish_source_length["Spring-Loaded Front Bumper"] = 30;
+    __banish_source_length["mafia middle finger ring"] = 60;
     
     int [string] __banish_simultaneous_limit;
     __banish_simultaneous_limit["beancannon"] = 5;
@@ -4858,8 +4884,6 @@ int BanishLength(string banish_name)
 
 boolean BanishIsActive(string name)
 {
-    //if (name == "Spring-Loaded Front Bumper" && my_turncount() < 137 + 30) return true;
-    //if (name == "Spring-Loaded Front Bumper") abort("It's time.");
     foreach key, banish in BanishesActive()
     {
         if (banish.banish_source == name)
@@ -4888,7 +4912,7 @@ static
 
 boolean __setting_output_debug_text = false;
 string __setting_grey_colour = "#87888A";
-string __asdon_version = "1.0";
+string __asdon_version = "1.0.1";
 //Library for checking if any given location is unlocked.
 //Similar to canadv.ash, except there's no code for using items and no URLs are (currently) visited. This limits our accuracy.
 //Currently, most locations are missing, sorry.
@@ -6148,6 +6172,8 @@ static
             lookup_map[s] = "place.php?whichplace=crimbo2016m";
         foreach s in $strings[Crimbo's Sack,Crimbo's Boots,Crimbo's Jelly,Crimbo's Reindeer,Crimbo's Beard,Crimbo's Hat]
             lookup_map[s] = "place.php?whichplace=crimbo2016c";
+        foreach s in $strings[The Cheerless Spire (Level 1), The Cheerless Spire (Level 2), The Cheerless Spire (Level 3), The Cheerless Spire (Level 4), The Cheerless Spire (Level 5)]
+        	lookup_map[s] = "place.php?whichplace=crimbo17_silentnight";
         lookup_map["An Eldritch Horror"] = "place.php?whichplace=town";
         
         lookup_map["Through the Spacegate"] = "place.php?whichplace=spacegate";
@@ -6454,7 +6480,7 @@ item [int] asdonMartinGenerateListOfFuelables()
             if (it.inebriety > 0 && it.image == "martini.gif")
                 continue;
         }
-        if (it.item_is_purchasable_from_a_store())
+        if (it.item_cannot_be_asdon_martined_because_it_was_purchased_from_a_store()) //the asdon martin wishes it was an AE86, so those work
         {
             //print_html("Rejecting " + it);
             continue;
@@ -6994,7 +7020,7 @@ buffer generateFuelText()
 	        if (it.item_amount() + it.creatable_amount() == 0) continue;
 			int [item] ingredients = it.get_ingredients_fast();
 			boolean ingredients_are_exclusively_npc_items = false;
-			if (it.item_is_purchasable_from_a_store())
+			if (it.item_cannot_be_asdon_martined_because_it_was_purchased_from_a_store())
 			{
 				//print_html("Rejecting " + it);
 				continue;
@@ -7065,7 +7091,15 @@ buffer generateFuelText()
         if (!($item[talisman o' namsilat].available_amount() > 0 || QuestState("questM12Pirate").mafia_internal_step >= 5))
             reserve_list[$item[hot wing]] = 3;
         if (!(QuestState("questL11Palindome").mafia_internal_step >= 5 || $item[wet stunt nut stew].available_amount() > 0))
+        {
             reserve_list[$item[stunt nuts]] = 1;
+            reserve_list[$item[wet stew]] = 1;
+            if ($item[wet stew].available_amount() == 0)
+            {
+            	reserve_list[$item[bird rib]] = 1;
+            	reserve_list[$item[lion oil]] = 1;
+            }
+        }
         if (!(QuestState("questL08Trapper").mafia_internal_step >= 3))
             reserve_list[$item[goat cheese]] = 3;
         if (!($item[blackberry galoshes].available_amount() > 0 || QuestState("questL11Black").finished))
@@ -7134,7 +7168,7 @@ buffer generateFuelText()
             should_select = true;
         if (inebriety_limit() == 0 && it.inebriety > 0)
             should_select = true;
-        if ($items[bottle of vodka,bottle of rum,boxed wine,bottle of gin,bottle of whiskey,bottle of tequila,alien meat,bottle of sake] contains it)
+        if ($items[bottle of vodka,bottle of rum,boxed wine,bottle of gin,bottle of whiskey,bottle of tequila,alien meat,bottle of sake,lime] contains it)
             should_select = false;
         if (in_ronin() && it == $item[glass of goat's milk] && $item[milk of magnesium].available_amount() < 2 && $skill[advanced saucecrafting].have_skill() && fullness_limit() > 0)
             should_select = false;
@@ -7374,7 +7408,7 @@ string fuelUpTo(int target_fuel)
             	if (it == chosen_source) continue;
                 if (it.is_npc_item()) continue;
                 if (!it.tradeable) continue;
-                if (it.item_is_purchasable_from_a_store()) continue;
+                if (it.item_cannot_be_asdon_martined_because_it_was_purchased_from_a_store()) continue;
                 float fuel_gained = it.averageAdventuresForConsumable();
                 if (fuel_gained <= 0.0) continue;
                 
