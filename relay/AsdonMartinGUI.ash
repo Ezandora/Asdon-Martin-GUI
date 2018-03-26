@@ -2908,6 +2908,32 @@ void testItemIngredients()
     testItemIngredients();
 }*/
 
+
+float numeric_modifier_replacement(item it, string modifier)
+{
+    string modifier_lowercase = modifier.to_lower_case();
+    if (it == $item[your cowboy boots])
+    {
+        if (modifier_lowercase == "monster level" && $slot[bootskin].equipped_item() == $item[diamondback skin])
+        {
+            return 20.0;
+        }
+        if (modifier_lowercase == "initiative" && $slot[bootspur].equipped_item() == $item[quicksilver spurs])
+            return 30;
+        if (modifier_lowercase == "item drop" && $slot[bootspur].equipped_item() == $item[nicksilver spurs])
+            return 30;
+        if (modifier_lowercase == "muscle percent" && $slot[bootskin].equipped_item() == $item[grizzled bearskin])
+            return 50.0;
+        if (modifier_lowercase == "mysticality percent" && $slot[bootskin].equipped_item() == $item[frontwinder skin])
+            return 50.0;
+        if (modifier_lowercase == "moxie percent" && $slot[bootskin].equipped_item() == $item[mountain lion skin])
+            return 50.0;
+        //FIXME deal with rest (resistance, etc)
+    }
+    return numeric_modifier(it, modifier);
+}
+
+
 static
 {
     skill [class][int] __skills_by_class;
@@ -2988,9 +3014,11 @@ static
 
 boolean [item] equipmentWithNumericModifier(string modifier)
 {
+	modifier = modifier.to_lower_case();
     boolean [item] dynamic_items;
     dynamic_items[to_item("kremlin's greatest briefcase")] = true;
     dynamic_items[$item[your cowboy boots]] = true;
+    dynamic_items[$item[a light that never goes out]] = true; //FIXME all smithsness items
     if (!(__equipment_by_numeric_modifier contains modifier))
     {
         //Build it:
@@ -3007,7 +3035,7 @@ boolean [item] equipmentWithNumericModifier(string modifier)
     boolean [item] extra_results;
     foreach it in dynamic_items
     {
-        if (it.numeric_modifier(modifier) != 0.0)
+        if (it.numeric_modifier_replacement(modifier) != 0.0)
         {
             extra_results[it] = true;
         }
@@ -3115,6 +3143,7 @@ static
     int PATH_GELATINOUS_NOOB = 29;
     int PATH_LICENSE_TO_ADVENTURE = 30;
     int PATH_LIVE_ASCEND_REPEAT = 31;
+    int PATH_POCKET_FAMILIARS = 32;
 }
 
 int __my_path_id_cached = -11;
@@ -3182,6 +3211,8 @@ int my_path_id()
         __my_path_id_cached = PATH_LICENSE_TO_ADVENTURE;
     else if (path_name == "Live. Ascend. Repeat.")
         __my_path_id_cached = PATH_LIVE_ASCEND_REPEAT;
+    else if (path_name == "Pocket Familiars" || path_name == "32")
+    	__my_path_id_cached = PATH_POCKET_FAMILIARS;
     else
         __my_path_id_cached = PATH_UNKNOWN;
     return __my_path_id_cached;
@@ -3199,7 +3230,7 @@ boolean have_familiar_replacement(familiar f)
 boolean familiar_is_usable(familiar f)
 {
     //r13998 has most of these
-    if (my_path_id() == PATH_AVATAR_OF_BORIS || my_path_id() == PATH_AVATAR_OF_JARLSBERG || my_path_id() == PATH_AVATAR_OF_SNEAKY_PETE || my_path_id() == PATH_ACTUALLY_ED_THE_UNDYING || my_path_id() == PATH_LICENSE_TO_ADVENTURE)
+    if (my_path_id() == PATH_AVATAR_OF_BORIS || my_path_id() == PATH_AVATAR_OF_JARLSBERG || my_path_id() == PATH_AVATAR_OF_SNEAKY_PETE || my_path_id() == PATH_ACTUALLY_ED_THE_UNDYING || my_path_id() == PATH_LICENSE_TO_ADVENTURE || my_path_id() == PATH_POCKET_FAMILIARS)
         return false;
     if (!is_unrestricted(f))
         return false;
@@ -4343,6 +4374,9 @@ item [int] generateEquipmentForExtraExperienceOnStat(stat desired_stat, boolean 
     //foreach it in experience_percent_modifiers
     foreach it in equipmentWithNumericModifier(numeric_modifier_string)
     {
+    	slot s = it.to_slot();
+        if (s == $slot[shirt] && !($skill[Torso Awaregness].have_skill() || $skill[Best Dressed].have_skill()))
+        	continue;
         if (it.available_amount() > 0 && (!require_can_equip_currently || it.can_equip()) && item_slots[it.to_slot()].numeric_modifier(numeric_modifier_string) < it.numeric_modifier(numeric_modifier_string))
         {
             item_slots[it.to_slot()] = it;
@@ -4661,6 +4695,77 @@ int licenseToAdventureSocialCapitalAvailable()
     return total_social_capital - social_capital_used;
 }
 
+
+
+monster convertEncounterToMonster(string encounter)
+{
+    boolean [string] intergnat_strings;
+    intergnat_strings[" WITH SCIENCE!"] = true;
+    intergnat_strings["ELDRITCH HORROR "] = true;
+    intergnat_strings[" WITH BACON!!!"] = true;
+    intergnat_strings[" NAMED NEIL"] = true;
+    intergnat_strings[" AND TESLA!"] = true;
+    foreach s in intergnat_strings
+    {
+        if (encounter.contains_text(s))
+            encounter = encounter.replace_string(s, "");
+    }
+    if (encounter == "The Junk") //not a junksprite
+        return $monster[junk];
+    if ((encounter.stringHasPrefix("the ") || encounter.stringHasPrefix("The")) && encounter.to_monster() == $monster[none])
+    {
+        encounter = encounter.substring(4);
+        //print_html("now \"" + encounter + "\"");
+    }
+    //if (encounter == "the X-32-F Combat Training Snowman")
+        //return $monster[X-32-F Combat Training Snowman];
+    if (encounter == "clingy pirate")
+        return $monster[clingy pirate (male)]; //always accurate for my personal data
+    return encounter.to_monster();
+}
+
+
+
+
+
+//Mafia's text output doesn't handle very long strings with no spaces in them - they go horizontally past the text box. This is common for to_json()-types.
+//So, add spaces every so often if we need them:
+buffer processStringForPrinting(string str)
+{
+    buffer out;
+    int limit = 50;
+    int comma_limit = 25;
+    int characters_since_space = 0;
+    for i from 0 to str.length() - 1
+    {
+        if (str.length() == 0) break;
+        string c = str.char_at(i);
+        out.append(c);
+        
+        if (c == " ")
+            characters_since_space = 0;
+        else
+        {
+            characters_since_space++;
+            if (characters_since_space >= limit || (c == "," && characters_since_space >= comma_limit)) //prefer adding spaces after a comma
+            {
+                characters_since_space = 0;
+                out.append(" ");
+            }
+        }
+    }
+    return out;
+}
+void printSilent(string line, string font_colour)
+{
+    print_html("<font color=\"" + font_colour + "\">" + line.processStringForPrinting() + "</font>");
+}
+
+void printSilent(string line)
+{
+    print_html(line.processStringForPrinting());
+}
+
 Record Banish
 {
     monster banished_monster;
@@ -4912,7 +5017,7 @@ static
 
 boolean __setting_output_debug_text = false;
 string __setting_grey_colour = "#87888A";
-string __asdon_version = "1.0.1";
+string __asdon_version = "1.0.2";
 //Library for checking if any given location is unlocked.
 //Similar to canadv.ash, except there's no code for using items and no URLs are (currently) visited. This limits our accuracy.
 //Currently, most locations are missing, sorry.
@@ -6347,6 +6452,8 @@ boolean can_equip_replacement(item it)
 {
     if (it.equipped_amount() > 0)
         return true;
+    if (it.item_type() == "chefstaff" && !($skill[Spirit of Rigatoni].have_skill() || my_class() == $class[Avatar of Jarlsberg] || (my_class() == $class[sauceror] && $item[special sauce glove].equipped_amount() > 0)))
+    	return false;
     boolean can_equip = it.can_equip();
     if (can_equip)
         return true;
@@ -7174,11 +7281,11 @@ buffer generateFuelText()
             should_select = false;
         if (inebriety_limit() > 0 && it.inebriety > 0 && it.averageAdventuresForConsumable() + ($skill[the ode to booze].have_skill() ? it.inebriety : 0) >= 16) //possible candidate for overdrinking. looking at you, bucket of wine
             should_select = false;
-        if (it == $item[toast] && $familiar[space jellyfish].have_familiar())
+        if (it == $item[toast] && ($familiar[space jellyfish].have_familiar() || $item[time-spinner].available_amount() > 0))
             should_select = false;
         if (it.historical_price() >= 5000)
             should_select = false;
-        if (in_ronin() && $items[succulent marrow,salacious crumbs,pink slime,typical tavern swill,government cheese] contains it) //FIXME more specific
+        if (in_ronin() && $items[succulent marrow,salacious crumbs,pink slime,typical tavern swill,government cheese,unnamed cocktail,Flamin' Whatshisname,spooky mushroom] contains it) //FIXME more specific
             should_select = false;
         
         
