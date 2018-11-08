@@ -3273,13 +3273,14 @@ boolean familiar_is_usable(familiar f)
         return false;
     if (my_path_id() == PATH_G_LOVER && !f.contains_text("g") && !f.contains_text("G"))
         return false;
-	int single_familiar_run = get_property_int("singleFamiliarRun");
+    //On second thought, this is terrible:
+	/*int single_familiar_run = get_property_int("singleFamiliarRun");
 	if (single_familiar_run != -1 && my_turncount() >= 30) //after 30 turns, they're probably sure
 	{
 		if (f == single_familiar_run.to_familiar())
 			return true;
 		return false;
-	}
+	}*/
 	if (my_path_id() == PATH_TRENDY)
 	{
 		if (!is_trendy(f))
@@ -4640,6 +4641,8 @@ boolean monster_has_zero_turn_cost(monster m)
         return true;
     if (my_familiar() == $familiar[machine elf] && my_location() == $location[the deep machine tunnels] && get_property_int("_machineTunnelsAdv") < 5)
         return true;
+    if ($monsters[terrible mutant,slime blob] contains m && get_property_int("_voteFreeFights") < 3)
+    	return true;
     return false;
 }
 
@@ -5101,7 +5104,7 @@ static
 
 boolean __setting_output_debug_text = false;
 string __setting_grey_colour = "#87888A";
-string __asdon_version = "1.0.3";
+string __asdon_version = "1.0.4";
 //Library for checking if any given location is unlocked.
 //Similar to canadv.ash, except there's no code for using items and no URLs are (currently) visited. This limits our accuracy.
 //Currently, most locations are missing, sorry.
@@ -7324,6 +7327,8 @@ buffer generateFuelText()
             	reserve_list[$item[lion oil]] = 1;
             }
         }
+        if ($skill[advanced saucecrafting].have_skill() && fullness_limit() > 0)
+	        reserve_list[$item[glass of goat's milk]] = 3;
         if (!(QuestState("questL08Trapper").mafia_internal_step >= 3))
             reserve_list[$item[goat cheese]] = 3;
         if (!($item[blackberry galoshes].available_amount() > 0 || QuestState("questL11Black").finished))
@@ -7361,7 +7366,7 @@ buffer generateFuelText()
 		if (f.fuel_gained <= 0) continue;
 		
         if (f.amount_have + f.amount_creatable == 0) continue;
-        
+        if (f.amount_have == 0 && reserve_list[it] > 0) continue;
         if (f.amount_have == 0 && it != best_meat_to_fuel_item && (it.craftableUsingOnlyActiveNPCStores() || !it.craftableWithoutUsingItems(craftable_blacklist)))
         {
             continue;
@@ -7387,10 +7392,6 @@ buffer generateFuelText()
             should_select = true;
         if ($items[bean burrito,spicy bean burrito,insanely spicy bean burrito,enchanted bean burrito,spicy enchanted bean burrito,insanely spicy enchanted bean burrito,jumping bean burrito,spicy jumping bean burrito,insanely spicy jumping bean burrito] contains it) //barrels! you probably won't eat them.
             should_select = true;
-        if (in_ronin() && it == $item[glass of goat's milk] && $item[milk of magnesium].available_amount() < 2 && $skill[advanced saucecrafting].have_skill() && fullness_limit() > 0)
-            should_select = false;
-        if (inebriety_limit() > 0 && it.inebriety > 0 && it.averageAdventuresForConsumable() + ($skill[the ode to booze].have_skill() ? it.inebriety : 0) >= 16) //possible candidate for overdrinking. looking at you, bucket of wine
-            should_select = false;
             
         if (my_path_id() == PATH_G_LOVER && it.item_is_usable() && (it.fullness > 0 || it.inebriety > 0))
             should_select = false; //very few consumables
@@ -7401,6 +7402,7 @@ buffer generateFuelText()
             should_select = true;
         if (inebriety_limit() == 0 && it.inebriety > 0)
             should_select = true;
+        
         if ($items[bottle of vodka,bottle of rum,boxed wine,bottle of gin,bottle of whiskey,bottle of tequila,alien meat,bottle of sake,lime] contains it)
             should_select = false;
         if (it == $item[toast] && ($familiar[space jellyfish].have_familiar() || $item[time-spinner].available_amount() > 0))
@@ -7411,6 +7413,10 @@ buffer generateFuelText()
             should_select = false;
         if (it.item_amount() == 0) //it costs meat to make things
         	should_select = false;
+        if (in_ronin() && it == $item[glass of goat's milk] && $item[milk of magnesium].available_amount() < 2 && $skill[advanced saucecrafting].have_skill() && fullness_limit() > 0)
+            should_select = false;
+        if (inebriety_limit() > 0 && it.inebriety > 0 && it.averageAdventuresForConsumable() + ($skill[the ode to booze].have_skill() ? it.inebriety : 0) >= 16) //possible candidate for overdrinking. looking at you, bucket of wine
+            should_select = false;
         
         if (should_select)
             f.should_select = true;
