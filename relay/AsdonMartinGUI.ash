@@ -4641,7 +4641,7 @@ boolean monster_has_zero_turn_cost(monster m)
         return true;
     if (my_familiar() == $familiar[machine elf] && my_location() == $location[the deep machine tunnels] && get_property_int("_machineTunnelsAdv") < 5)
         return true;
-    if ($monsters[terrible mutant,slime blob] contains m && get_property_int("_voteFreeFights") < 3)
+    if (lookupMonsters("terrible mutant,slime blob,government bureaucrat,angry ghost,annoyed snake") contains m && get_property_int("_voteFreeFights") < 3)
     	return true;
     return false;
 }
@@ -5104,7 +5104,7 @@ static
 
 boolean __setting_output_debug_text = false;
 string __setting_grey_colour = "#87888A";
-string __asdon_version = "1.0.4";
+string __asdon_version = "1.0.5";
 //Library for checking if any given location is unlocked.
 //Similar to canadv.ash, except there's no code for using items and no URLs are (currently) visited. This limits our accuracy.
 //Currently, most locations are missing, sorry.
@@ -6765,7 +6765,7 @@ int CatBurglarChargesLeftToday()
     int heists_gained_today = 0;
     int limit = 10;
     int c = charge;
-    while (c > limit)
+    while (c >= limit)
     {
         heists_gained_today += 1;
         c -= limit;
@@ -7185,11 +7185,22 @@ buffer generateFuelMeatText()
 			int buffs_currently_available = get_fuel / 37;
 			int target_buffs = fuel_target / 37;
 			int delta = target_buffs - buffs_currently_available;
-			output.major_number = "+" + delta;
-			output.identifier = "buff" + (delta > 1 ? "s" : "");
+            int delta_as_fuel = delta * 37;
+            if (false)
+            {
+				output.major_number = "+" + delta;
+				output.identifier = "buff" + (delta > 1 ? "s" : "");
+            }
+            else
+            {
+                output.major_number = "+" + delta_as_fuel;
+                //output.identifier = "fuel<br>(" + delta + " buff" + (delta > 1 ? "s" : "") + ")";
+                output.identifier = "fuel";
+                output.parenthetical = "(" + delta + " buff" + (delta > 1 ? "s" : "") + " worth)<br>";
+            }
 		}
 		
-		output.parenthetical = "~" + meat_cost_approximate + " meat";
+		output.parenthetical += "~" + meat_cost_approximate + " meat";
 		output.is_bold = is_bold;
 		if (my_meat() < meat_cost)
 			output.parenthetical = HTMLGenerateSpanFont(output.parenthetical, "#FF7F81");
