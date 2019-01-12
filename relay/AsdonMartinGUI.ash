@@ -4503,7 +4503,7 @@ float averageAdventuresForConsumable(item it, boolean assume_monday)
             adventures = 9; //saved across lifetimes
     }
 	
-	if ($skill[saucemaven].have_skill() && $items[hot hi mein,cold hi mein,sleazy hi mein,spooky hi mein,stinky hi mein,Hell ramen,fettucini Inconnu,gnocchetti di Nietzsche,spaghetti with Skullheads,spaghetti con calaveras] contains it)
+	if ($skill[saucemaven].have_skill() && ($items[hot hi mein,cold hi mein,sleazy hi mein,spooky hi mein,stinky hi mein,Hell ramen,fettucini Inconnu,gnocchetti di Nietzsche,spaghetti with Skullheads,spaghetti con calaveras] contains it || lookupItems("haunted hell ramen") contains it))
 	{
 		if ($classes[sauceror,pastamancer] contains my_class())
 			adventures += 5;
@@ -4633,6 +4633,7 @@ boolean monster_has_zero_turn_cost(monster m)
 {
     if (m.attributes.contains_text("FREE"))
         return true;
+    if (m == lookupMonster("sausage goblin") && m != $monster[none]) return true;
         
     if ($monsters[lynyrd] contains m) return true; //not marked as FREE in attributes
     //if ($monsters[Black Crayon Beast,Black Crayon Beetle,Black Crayon Constellation,Black Crayon Golem,Black Crayon Demon,Black Crayon Man,Black Crayon Elemental,Black Crayon Crimbo Elf,Black Crayon Fish,Black Crayon Goblin,Black Crayon Hippy,Black Crayon Hobo,Black Crayon Shambling Monstrosity,Black Crayon Manloid,Black Crayon Mer-kin,Black Crayon Frat Orc,Black Crayon Penguin,Black Crayon Pirate,Black Crayon Flower,Black Crayon Slime,Black Crayon Undead Thing,Black Crayon Spiraling Shape,broodling seal,Centurion of Sparky,heat seal,hermetic seal,navy seal,Servant of Grodstank,shadow of Black Bubbles,Spawn of Wally,watertight seal,wet seal,lynyrd,BRICKO airship,BRICKO bat,BRICKO cathedral,BRICKO elephant,BRICKO gargantuchicken,BRICKO octopus,BRICKO ooze,BRICKO oyster,BRICKO python,BRICKO turtle,BRICKO vacuum cleaner,Witchess Bishop,Witchess King,Witchess Knight,Witchess Ox,Witchess Pawn,Witchess Queen,Witchess Rook,Witchess Witch,The ghost of Ebenoozer Screege,The ghost of Lord Montague Spookyraven,The ghost of Waldo the Carpathian,The Icewoman,The ghost of Jim Unfortunato,the ghost of Sam McGee,the ghost of Monsieur Baguelle,the ghost of Vanillica "Trashblossom" Gorton,the ghost of Oily McBindle,boneless blobghost,The ghost of Richard Cockingham,The Headless Horseman,Emily Koops\, a spooky lime,time-spinner prank,random scenester,angry bassist,blue-haired girl,evil ex-girlfriend,peeved roommate] contains m)
@@ -5104,7 +5105,7 @@ static
 
 boolean __setting_output_debug_text = false;
 string __setting_grey_colour = "#87888A";
-string __asdon_version = "1.0.5";
+string __asdon_version = "1.0.6";
 //Library for checking if any given location is unlocked.
 //Similar to canadv.ash, except there's no code for using items and no URLs are (currently) visited. This limits our accuracy.
 //Currently, most locations are missing, sorry.
@@ -5770,7 +5771,7 @@ boolean locationAvailablePrivateCheck(location loc, Error able_to_find)
         case $location[The dungeons of doom]:
             return my_basestat(my_primestat()) >= 45 && get_property_ascension("lastPlusSignUnlock");
         case $location[The "Fun" House]:
-            return questPropertyPastInternalStepNumber("questG04Nemesis", 2); //FIXME is 2 correct?
+            return questPropertyPastInternalStepNumber("questG04Nemesis", 6); //FIXME 6 is wrong, but I don't know the right value
         case $location[The Dark Neck of the Woods]:
         case $location[The Dark Heart of the Woods]:
         case $location[The Dark Elbow of the Woods]:
@@ -5985,35 +5986,6 @@ void locationAvailableResetCache()
     __la_commons_were_inited = false;
 }
 
-
-void locationAvailableRunDiagnostics()
-{
-	location [string][int] unknown_locations_by_zone;
-	
-	foreach loc in $locations[]
-	{
-		Error able_to_find;
-		locationAvailable(loc, able_to_find);
-		if (!able_to_find.was_error)
-			continue;
-		if (!(unknown_locations_by_zone contains (loc.zone)))
-			unknown_locations_by_zone[loc.zone] = listMakeBlankLocation();
-		unknown_locations_by_zone[loc.zone].listAppend(loc);
-	}
-	if (unknown_locations_by_zone.count() > 0)
-	{
-		print_html("Unknown locations in location availability tester:");
-		foreach zone in unknown_locations_by_zone
-		{
-			print(zone + ":");
-			foreach key in unknown_locations_by_zone[zone]
-			{
-				location loc = unknown_locations_by_zone[zone][key];
-				print_html("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" + loc);
-			}
-		}
-	}
-}
 
 
 string [location] LAConvertLocationLookupToLocations(string [string] lookup_map)
@@ -6333,6 +6305,7 @@ static
         lookup_map["The Fungal Nethers"] = "place.php?whichplace=nemesiscave";
         lookup_map["Thugnderdome"] = "gnomes.php";
         lookup_map["The Overgrown Lot"] = "place.php?whichplace=town_wrong";
+        lookup_map["The Canadian Wildlife Preserve"] = "place.php?whichplace=mountains";
         foreach s in $strings[The Hallowed Halls,Shop Class,Chemistry Class,Art Class]
             lookup_map[s] = "place.php?whichplace=KOLHS";
         foreach s in $strings[The Edge of the Swamp,The Dark and Spooky Swamp,The Corpse Bog,The Ruined Wizard Tower,The Wildlife Sanctuarrrrrgh,Swamp Beaver Territory,The Weird Swamp Village]
@@ -6380,7 +6353,7 @@ static
         foreach s in $strings[The Bandit Crossroads,The Putrid Swamp,Near the Witch's House,The Troll Fortress,The Sprawling Cemetery,The Cursed Village,The Foreboding Cave,The Faerie Cyrkle,The Evil Cathedral,The Towering Mountains,The Mystic Wood,The Druidic Campsite,The Old Rubee Mine]
         	lookup_map[s] = "place.php?whichplace=realm_fantasy";
         lookup_map["An Eldritch Horror"] = "place.php?whichplace=town";
-        
+        lookup_map["The Neverending Party"] = "place.php?whichplace=town_wrong";
         lookup_map["Through the Spacegate"] = "place.php?whichplace=spacegate";
         __constant_clickable_urls = LAConvertLocationLookupToLocations(lookup_map);
     }
@@ -6448,6 +6421,44 @@ string getClickableURLForLocationIfAvailable(location l)
         return l.getClickableURLForLocation();
     else
         return "";
+}
+
+
+
+void locationAvailableRunDiagnostics()
+{
+    location [string][int] unknown_locations_by_zone;
+    
+    foreach loc in $locations[]
+    {
+        Error able_to_find;
+        locationAvailable(loc, able_to_find);
+        if (!able_to_find.was_error)
+            continue;
+        if (!(unknown_locations_by_zone contains (loc.zone)))
+            unknown_locations_by_zone[loc.zone] = listMakeBlankLocation();
+        unknown_locations_by_zone[loc.zone].listAppend(loc);
+    }
+    if (unknown_locations_by_zone.count() > 0)
+    {
+        print_html("Unknown locations in location availability tester:");
+        foreach zone in unknown_locations_by_zone
+        {
+            print(zone + ":");
+            foreach key in unknown_locations_by_zone[zone]
+            {
+                location loc = unknown_locations_by_zone[zone][key];
+                print_html("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" + loc);
+            }
+        }
+    }
+    /*print_html("<strong>Missing URLs:</strong>");
+    foreach loc in $locations[]
+    {
+    	if (loc.parent == "Removed") continue;
+    	if (loc.getClickableURLForLocation() == "")
+        	print_html(loc.parent + ": " + loc.zone + ": " + loc);
+    }*/
 }
 
 /*void main()
@@ -7642,6 +7653,7 @@ buffer generateGUI()
 string asdonFuelUpTo(int target_fuel)
 {
     int breakout = 100;
+    boolean [item] reject_source;
     while (target_fuel > get_fuel() && my_meat() > 0 && breakout > 0)
     {
         item chosen_source = $item[loaf of soda bread];
@@ -7655,10 +7667,10 @@ string asdonFuelUpTo(int target_fuel)
             	if (it == chosen_source) continue;
                 if (it.is_npc_item()) continue;
                 if (!it.tradeable) continue;
+                if (reject_source[it]) continue;
                 if (it.item_cannot_be_asdon_martined_because_it_was_purchased_from_a_store()) continue;
                 float fuel_gained = it.averageAdventuresForConsumable();
                 if (fuel_gained <= 0.0) continue;
-                
                 int historical_price = it.historical_price();
         		if (historical_price <= 0) continue;
                 float efficiency_historical = to_float(historical_price) / fuel_gained;
@@ -7673,7 +7685,7 @@ string asdonFuelUpTo(int target_fuel)
                 buy_exclusively_from_mall = true;
             }
         }
-        
+        //FIXME add all-purpose flower
         if (!can_interact() && ($item[wad of dough].npc_price() <= 0 || $item[soda water].npc_price() <= 0))
         {
             return "wad of dough or soda water is not NPC purchasable"; //no can do
@@ -7708,13 +7720,19 @@ string asdonFuelUpTo(int target_fuel)
         if (buy_exclusively_from_mall)
         { 
         	//WARNING buy() is extremely dangerous
-        	buy(MAX(1, MIN(5, minimum_sources_needed)), chosen_source, MAX(1, MIN(20000, chosen_source.mall_price() * 1.1))); 
+            int mall_price = chosen_source.mall_price();
+        	int unknown = buy(MAX(1, MIN(5, minimum_sources_needed)), chosen_source, MAX(1, MIN(20000, mall_price * 1.1)));
         }
         else
         	retrieve_item(minimum_sources_needed, chosen_source);
         int starting_amount = chosen_source.item_amount();
+        if (starting_amount < minimum_sources_needed || chosen_source.item_amount() == 0)
+        {
+        	reject_source[chosen_source] = true;
+            if (chosen_source.item_amount() == 0) continue;
+        }
         int fuel_start = get_fuel();
-        visit_url("campground.php?action=fuelconvertor&qty=" + minimum_sources_needed + "&iid=" + chosen_source.to_int());
+        visit_url("campground.php?action=fuelconvertor&qty=" + min(minimum_sources_needed, chosen_source.item_amount()) + "&iid=" + chosen_source.to_int());
         if (chosen_source.item_amount() >= starting_amount)
         	return "Not able to feed the car...?";
         if (get_fuel() == fuel_start)
