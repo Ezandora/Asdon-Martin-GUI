@@ -360,6 +360,12 @@ familiar [int] listMakeBlankFamiliar()
 	return result;
 }
 
+int [int] listMakeBlankInt()
+{
+    int [int] result;
+    return result;
+}
+
 
 
 
@@ -647,7 +653,6 @@ string listJoinComponents(string [int] list, string joining_string)
 	return listJoinComponents(list, joining_string, "");
 }
 
-
 string listJoinComponents(item [int] list, string joining_string, string and_string)
 {
 	//lazy:
@@ -923,6 +928,29 @@ string [string] mapCopy(string [string] map)
     foreach key in map
         result[key] = map[key];
     return result;
+}
+
+boolean mapsAreEqual(string [string] map1, string [string] map2)
+{
+	if (map1.count() != map2.count())
+	{
+        //print_html("map1.c = " + map1.count() + " which is not " + map2.count());
+		return false;
+    }
+	foreach key1, v in map1
+	{
+		if (!(map2 contains key1))
+        {
+        	//print_html("map2 lacks " + key1);
+        	return false;
+        }
+        if (map2[key1] != v)
+        {
+            //print_html("map2 v(" + map2[key1] + " does not equal " + key1 + " (" + v + ")");
+        	return false;
+        }
+	}
+	return true;
 }
 
 boolean [string] listInvert(string [int] list)
@@ -1441,7 +1469,7 @@ string HTMLGreyOutTextUnlessTrue(string text, boolean conditional)
     return HTMLGenerateSpanFont(text, "gray");
 }
 //These settings are for development. Don't worry about editing them.
-string __version = "1.4.37a1";
+string __version = "1.4.39a1";
 
 //Debugging:
 boolean __setting_debug_mode = false;
@@ -2159,11 +2187,16 @@ Vec2i Vec2iZero()
 	return Vec2iMake(0,0);
 }
 
-boolean Vec2iValueInRange(Vec2i v, int value)
+boolean Vec2iValueInInterval(Vec2i v, int value)
 {
     if (value >= v.x && value <= v.y)
         return true;
     return false;
+}
+
+boolean Vec2iValueInRange(Vec2i v, int value)
+{
+	return Vec2iValueInInterval(v, value);
 }
 
 boolean Vec2iEquals(Vec2i a, Vec2i b)
@@ -2951,6 +2984,9 @@ static
     int PATH_G_LOVER = 33;
     int PATH_DISGUISES_DELIMIT = 34;
     int PATH_DEMIGUISE = 34;
+    int PATH_DARK_GYFFTE = 35;
+    int PATH_DARK_GIFT = 35;
+    int PATH_VAMPIRE = 35;
 }
 
 int __my_path_id_cached = -11;
@@ -3024,6 +3060,8 @@ int my_path_id()
         __my_path_id_cached = PATH_G_LOVER;
     else if (path_name == "Disguises Delimit" || path_name == 34)
     	__my_path_id_cached = PATH_DISGUISES_DELIMIT;
+    else if (path_name == "Dark Gyffte")
+    	__my_path_id_cached = PATH_DARK_GYFFTE;
     else
         __my_path_id_cached = PATH_UNKNOWN;
     return __my_path_id_cached;
@@ -3127,7 +3165,7 @@ static
             }
             
             //Equipment:
-            if (it.to_slot() != $slot[none])
+            if ($slots[hat,weapon,off-hand,back,shirt,pants,acc1,acc2,acc3,familiar] contains it.to_slot())
             {
                 __equipment[it] = true;
                 if (it.numeric_modifier("combat rate") < 0)
@@ -3267,7 +3305,7 @@ boolean have_familiar_replacement(familiar f)
 boolean familiar_is_usable(familiar f)
 {
     //r13998 has most of these
-    if (my_path_id() == PATH_AVATAR_OF_BORIS || my_path_id() == PATH_AVATAR_OF_JARLSBERG || my_path_id() == PATH_AVATAR_OF_SNEAKY_PETE || my_path_id() == PATH_ACTUALLY_ED_THE_UNDYING || my_path_id() == PATH_LICENSE_TO_ADVENTURE || my_path_id() == PATH_POCKET_FAMILIARS)
+    if (my_path_id() == PATH_AVATAR_OF_BORIS || my_path_id() == PATH_AVATAR_OF_JARLSBERG || my_path_id() == PATH_AVATAR_OF_SNEAKY_PETE || my_path_id() == PATH_ACTUALLY_ED_THE_UNDYING || my_path_id() == PATH_LICENSE_TO_ADVENTURE || my_path_id() == PATH_POCKET_FAMILIARS || my_path_id() == PATH_VAMPIRE)
         return false;
     if (!is_unrestricted(f))
         return false;
@@ -4579,6 +4617,7 @@ boolean item_is_pvp_stealable(item it)
 
 int effective_familiar_weight(familiar f)
 {
+	if (f == $familiar[none]) return 0;
     int weight = f.familiar_weight();
     
     boolean is_moved = false;
@@ -4634,6 +4673,7 @@ boolean monster_has_zero_turn_cost(monster m)
     if (m.attributes.contains_text("FREE"))
         return true;
     if (m == lookupMonster("sausage goblin") && m != $monster[none]) return true;
+    if (lookupMonsters("LOV Engineer,LOV Enforcer,LOV Equivocator") contains m) return true;
         
     if ($monsters[lynyrd] contains m) return true; //not marked as FREE in attributes
     //if ($monsters[Black Crayon Beast,Black Crayon Beetle,Black Crayon Constellation,Black Crayon Golem,Black Crayon Demon,Black Crayon Man,Black Crayon Elemental,Black Crayon Crimbo Elf,Black Crayon Fish,Black Crayon Goblin,Black Crayon Hippy,Black Crayon Hobo,Black Crayon Shambling Monstrosity,Black Crayon Manloid,Black Crayon Mer-kin,Black Crayon Frat Orc,Black Crayon Penguin,Black Crayon Pirate,Black Crayon Flower,Black Crayon Slime,Black Crayon Undead Thing,Black Crayon Spiraling Shape,broodling seal,Centurion of Sparky,heat seal,hermetic seal,navy seal,Servant of Grodstank,shadow of Black Bubbles,Spawn of Wally,watertight seal,wet seal,lynyrd,BRICKO airship,BRICKO bat,BRICKO cathedral,BRICKO elephant,BRICKO gargantuchicken,BRICKO octopus,BRICKO ooze,BRICKO oyster,BRICKO python,BRICKO turtle,BRICKO vacuum cleaner,Witchess Bishop,Witchess King,Witchess Knight,Witchess Ox,Witchess Pawn,Witchess Queen,Witchess Rook,Witchess Witch,The ghost of Ebenoozer Screege,The ghost of Lord Montague Spookyraven,The ghost of Waldo the Carpathian,The Icewoman,The ghost of Jim Unfortunato,the ghost of Sam McGee,the ghost of Monsieur Baguelle,the ghost of Vanillica "Trashblossom" Gorton,the ghost of Oily McBindle,boneless blobghost,The ghost of Richard Cockingham,The Headless Horseman,Emily Koops\, a spooky lime,time-spinner prank,random scenester,angry bassist,blue-haired girl,evil ex-girlfriend,peeved roommate] contains m)
@@ -5105,7 +5145,7 @@ static
 
 boolean __setting_output_debug_text = false;
 string __setting_grey_colour = "#87888A";
-string __asdon_version = "1.0.6";
+string __asdon_version = "1.0.7";
 //Library for checking if any given location is unlocked.
 //Similar to canadv.ash, except there's no code for using items and no URLs are (currently) visited. This limits our accuracy.
 //Currently, most locations are missing, sorry.
@@ -6352,6 +6392,8 @@ static
         	lookup_map[s] = "place.php?whichplace=crimbo17_silentnight";
         foreach s in $strings[The Bandit Crossroads,The Putrid Swamp,Near the Witch's House,The Troll Fortress,The Sprawling Cemetery,The Cursed Village,The Foreboding Cave,The Faerie Cyrkle,The Evil Cathedral,The Towering Mountains,The Mystic Wood,The Druidic Campsite,The Old Rubee Mine]
         	lookup_map[s] = "place.php?whichplace=realm_fantasy";
+        foreach s in $strings[PirateRealm Island,Sailing the PirateRealm Seas]
+            lookup_map[s] = "place.php?whichplace=realm_pirate";
         lookup_map["An Eldritch Horror"] = "place.php?whichplace=town";
         lookup_map["The Neverending Party"] = "place.php?whichplace=town_wrong";
         lookup_map["Through the Spacegate"] = "place.php?whichplace=spacegate";
@@ -6529,6 +6571,779 @@ EquipmentStatRequirement StatRequirementForEquipment(item it)
 
 
 
+
+
+
+//This file isn't used in guide at all, currently, but I'd thought I'd release it anyways.
+//Classifies locations on whether they are adventure.php. Useful for scripts that need that information. Relevant for arrowing monsters, KOLHS, wandering monsters, semi-rare, etc.
+
+
+
+static
+{
+    int [location] __adventure_php_locations;
+    void initialiseAdventurePHPLocations()
+    {
+        //Two methods:
+        //Look up every snarfblat, and assign ones that have locations. (this is faster)
+        //Load adventures.txt, find every adventure= entry, save those. (slower, but more accurate if they ever go past 1000 snarfblat)
+        //Using the first method, because our parsing of adventures.txt isn't perfect, and it'll take a few years before we go over snarfblat=1000
+        if (true)
+        {
+            //0.985093583 total, 0.663535898 net, 1000 invocations
+            for i from 1 to 1000 //FIXME update this in a few years, we're nearing 500 or so right now
+            {
+                location l = i.to_location();
+                if (l != $location[none])
+                    __adventure_php_locations[l] = i;
+            }
+        }
+        else
+        {
+            //2.571006588 total, 0.791600414 net, 1000 invocations
+            //Read from adventures.txt:
+            //This doesn't accurately read the file. No idea how to use file_to_map here.
+            string [string,string] adventures_txt;
+            file_to_map("data/adventures.txt", adventures_txt);
+            //print_html("adventures_txt = " + adventures_txt.to_json());
+            foreach key in adventures_txt
+            {
+                foreach key2 in adventures_txt[key]
+                {
+                    if (key2.contains_text("adventure="))
+                    {
+                        int snarfblat = key2.replace_string("adventure=", "").to_int_silent();
+                        
+                        location l = snarfblat.to_location();
+                        if (l != $location[none])
+                            __adventure_php_locations[l] = snarfblat;
+                    }
+                    //print_html("found (" + key + ")(" + key2 + ") \"" + adventures_txt[key][key2] + "\"");
+                }
+            }
+        }
+    }
+    initialiseAdventurePHPLocations();
+}
+
+boolean locationVisitsAdventurePHP(location l)
+{
+    if (l.to_url().contains_text("adventure.php"))
+        return true;
+    if (__adventure_php_locations contains l)
+        return true;
+    return false;
+}
+
+boolean locationAllowsWanderingMonsters(location l)
+{
+    if ($locations[The Shore\, Inc. Travel Agency,Noob Cave,The Dire Warren] contains l)
+        return false;
+    if (l == $location[The X-32-F Combat Training Snowman])
+        return false;
+    if ($locations[Gingerbread Industrial Zone,Gingerbread Train Station,Gingerbread Sewers,Gingerbread Upscale Retail District] contains l && l != $location[none])
+        return false;
+    return l.locationVisitsAdventurePHP();
+}
+
+int snarfblatForLocation(location l)
+{
+    if (__adventure_php_locations contains l)
+        return __adventure_php_locations[l];
+    return -1;
+}
+
+Record Counter
+{
+    string name;
+    string location_id; //number or *
+    string mafia_informed_type; //"wander" seen
+    string [int] mafia_gifs;
+    int [int] exact_turns; //sorted order
+    int range_start_turn;
+    int range_end_turn;
+    boolean found_start_turn_range;
+    boolean found_end_turn_range;
+    
+    boolean initialised;
+    boolean waiting_for_adventure_php;
+};
+
+Counter CounterMake()
+{
+    Counter c;
+    c.range_start_turn = -1;
+    c.range_end_turn = -1;
+    c.initialised = true;
+    
+    return c;
+}
+
+//If false, use exact_turns. If true, range_start_turn/range_end_turn. (this isn't ideal, sorry)
+boolean CounterIsRange(Counter c)
+{
+    if (!c.initialised)
+        return false;
+    //if (c.range_start_turn < 0 && c.range_end_turn < 0) //seems to be an errornous test when we go past our window
+        //return false;
+    if (c.exact_turns.count() == 0 && (c.found_start_turn_range || c.found_end_turn_range))
+        return true;
+    return false;
+}
+
+int CounterGetNextExactTurn(Counter c)
+{
+    if (!c.initialised)
+        return -1;
+    if (c.CounterIsRange())
+        return -1;
+    if (c.exact_turns.count() == 0)
+        return -1;
+    return c.exact_turns[0];
+}
+
+boolean CounterIsExact(Counter c)
+{
+	return c.CounterGetNextExactTurn() > 0;
+}
+
+boolean CounterMayHitNextTurn(Counter c)
+{
+    //FIXME use CounterMayHitInXTurns to implement this once we're sure it works
+    if (!c.initialised)
+        return false;
+    if (c.exact_turns.count() > 0)
+    {
+        foreach key, turn in c.exact_turns
+        {
+            if (turn == 0)
+                return true;
+        }
+        return false;
+    }
+    else if (!c.found_start_turn_range && !c.found_end_turn_range)
+    {
+        return false;
+    }
+    //turn range:
+    else if (c.found_start_turn_range)
+    {
+        if (c.range_start_turn <= 0)
+            return true;
+        else
+            return false;
+    }
+    else if (c.found_end_turn_range)
+        return true; //maaaybe?
+    return false;
+}
+
+boolean CounterMayHitInXTurns(Counter c, int turns_limit)
+{
+    if (!c.initialised)
+        return false;
+    if (c.exact_turns.count() > 0)
+    {
+        foreach key, turn in c.exact_turns
+        {
+            if (turn <= turns_limit)
+                return true;
+        }
+        return false;
+    }
+    else if (!c.found_start_turn_range && !c.found_end_turn_range)
+    {
+        return false;
+    }
+    //turn range:
+    else if (c.found_start_turn_range)
+    {
+        if (c.range_start_turn <= turns_limit && c.range_end_turn >= 0)
+            return true;
+        else
+            return false;
+    }
+    else if (c.found_end_turn_range && c.range_end_turn >= 0)
+    {
+        return true; //maaaybe?
+    }
+    return false;
+}
+
+Vec2i CounterGetWindowRange(Counter c) //x is min, y is max
+{
+    if (!c.CounterIsRange())
+        return Vec2iMake(-1, -1);
+    return Vec2iMake(c.range_start_turn, c.range_end_turn);
+}
+
+//DOES NOT HANDLE COUNTER RANGES:
+boolean CounterWillHitExactlyInTurnRange(Counter c, int start_turn_range, int end_turn_range)
+{
+    if (!c.initialised)
+        return false;
+    
+    Vec2i turn_range = Vec2iMake(start_turn_range, end_turn_range);
+    
+    foreach key in c.exact_turns
+    {
+        int turn = c.exact_turns[key];
+        if (turn_range.Vec2iValueInRange(turn))
+            return true;
+    }
+    return false;
+}
+
+boolean CounterWillHitNextTurn(Counter c)
+{
+	if (c.name == "Holiday Monster") //mafia's tracking of these breaks, so, don't rely on it. thinking of El Dia de Los Muertos Borrachos specifically
+		return false;
+    if (c.CounterIsRange())
+    {
+        Vec2i range = c.CounterGetWindowRange();
+        if (c.name == "Semi-rare" && range.y <= 0)
+        	return false; //there's probably a lot of other ones where being negative means it won't happen
+        if (range.y <= 0)
+            return true;
+    }
+    if (c.CounterWillHitExactlyInTurnRange(0, 0))
+        return true;
+    return false;
+}
+
+
+boolean CounterExists(Counter c)
+{
+    if (!c.initialised)
+        return false;
+    if (c.CounterIsRange())
+        return true;
+    if (c.exact_turns.count() > 0)
+        return true;
+    return false;
+}
+
+buffer CounterDescription(Counter c)
+{
+    if (!c.initialised)
+    {
+        return "Uninitialised".to_buffer();
+    }
+    buffer description;
+    description.append(c.name);
+    if (!c.CounterExists())
+        description.append(" (invalid)");
+    if (c.location_id != "")
+    {
+        description.append(" (location ");
+        description.append(c.location_id);
+        description.append(")");
+    }
+    if (c.mafia_gifs.count() > 0)
+    {
+        description.append(" (gif ");
+        description.append(c.mafia_gifs.listJoinComponents(", ", "and"));
+        description.append(")");
+    }
+    description.append(" in ");
+    if (c.CounterIsRange())
+    {
+        description.append("[");
+        description.append(c.range_start_turn);
+        description.append(", ");
+        description.append(c.range_end_turn);
+        description.append("]");
+    }
+    else
+    {
+        description.append(c.exact_turns.listJoinComponents(", ", "or"));
+    }
+    description.append(" turns");
+    return description;
+}
+
+
+void CountersParseProperty(string property_name, Counter [string] counters, boolean are_temp_counters)
+{
+    foreach key in counters
+    {
+        remove counters[key];
+    }
+    
+	string counter_string = get_property(property_name);
+    /*_tempRelayCounters uses | as a separator, relayCounters does not:
+> get _tempRelayCounters
+
+15:Romantic Monster window begin loc=*:lparen.gif|25:Romantic Monster window end loc=* type=wander:rparen.gif|7:Digitize Monster loc=* type=wander:watch.gif|7:Digitize Monster loc=* type=wander:watch.gif|7:Digitize Monster loc=* type=wander:watch.gif|
+
+> get relayCounters
+
+70:Semirare window begin:lparen.gif:80:Semirare window end loc=*:rparen.gif
+    */
+	string [int] counter_split = split_string(counter_string.replace_string("|", ":"), ":"); //FIXME | properly
+    //print_html("counter_split = " + counter_split.to_json());
+    //Parse counters:
+    for i from 0 to (counter_split.count() - 1) by 3
+    {
+        if (i + 3 > counter_split.count())
+            break;
+        if (counter_split[i].length() == 0)
+            continue;
+        int turn_number = to_int_silent(counter_split[i]);
+        if (are_temp_counters)
+            turn_number += my_turncount();
+        int turns_until_counter = turn_number - my_turncount();
+        string counter_name_raw = counter_split[i + 1];
+        string counter_gif = counter_split[i + 2];
+        string location_id;
+        string type;
+        string intermediate_name = counter_name_raw;
+        //print_html("intermediate_name = " + intermediate_name + ", turn_number = " + turn_number + ", turns_until_counter = " + turns_until_counter);
+        
+        //Parse loc, remove it from intermediate name:
+        //loc=* type=wander
+        
+        string [string] set_properties;
+        
+        string [int][int] properties_found = intermediate_name.group_string(" ([^= ]*)=([^ ]*)");
+        //print_html("intermediate_name = " + intermediate_name + " properties_found = " + properties_found.to_json());
+        
+        foreach key in properties_found
+        {
+            string entire_match = properties_found[key][0];
+            set_properties[properties_found[key][1]] = properties_found[key][2];
+            intermediate_name = intermediate_name.replace_string(entire_match, "");
+        }
+        if (set_properties contains "loc")
+            location_id = set_properties["loc"];
+        if (set_properties contains "type")
+            type = set_properties["type"];
+        
+        /*string [int][int] location_match = group_string(intermediate_name, " loc=([0-9*]*)");
+        if (location_match.count() > 0)
+        {
+            location_id = location_match[0][1];
+            string end_string = " loc=" + location_id;
+            if (intermediate_name.stringHasSuffix(end_string))
+            {
+                int clip_pos = intermediate_name.length() - end_string.length();
+                if (clip_pos > 0)
+                    intermediate_name = intermediate_name.substring(0, clip_pos);
+                else
+                    intermediate_name = "";
+            }
+        }*/
+        
+        boolean is_window_start = false;
+        boolean is_window_end = false;
+        //Convert intermediate name to our internal representation:
+        if (intermediate_name.contains_text("window begin"))
+        {
+            //generic window
+            intermediate_name = intermediate_name.substring(0, intermediate_name.index_of(" window begin"));
+            is_window_start = true;
+        }
+        else if (intermediate_name.contains_text("window end"))
+        {
+            //generic window
+            intermediate_name = intermediate_name.substring(0, intermediate_name.index_of(" window end"));
+            is_window_end = true;
+        }
+        
+        
+        string final_name = intermediate_name;
+        if (intermediate_name == "Fortune Cookie" || intermediate_name.stringHasPrefix("Semirare"))
+        {
+            final_name = "Semi-rare";
+        }
+        final_name = final_name.entity_encode();
+        
+        //Now create and edit our counter:
+        
+        Counter c = CounterMake();
+        if (counters contains final_name)
+            c = counters[final_name];
+        if (are_temp_counters)
+            c.waiting_for_adventure_php = true;
+        
+        c.name = final_name;
+        boolean should_add_gif = true;
+        if (c.mafia_gifs.count() > 0)
+        {
+            foreach key in c.mafia_gifs
+            {
+                if (c.mafia_gifs[key] == counter_gif)
+                    should_add_gif = false;
+            }
+        }
+        if (should_add_gif)
+            c.mafia_gifs.listAppend(counter_gif);
+        c.location_id = location_id;
+        c.mafia_informed_type = type;
+        
+        if (is_window_start)
+        {
+            c.range_start_turn = turns_until_counter;
+            if (!c.found_end_turn_range) //haven't found an end turn range - implicitly set it to the start
+                c.range_end_turn = turns_until_counter;
+            c.found_start_turn_range = true;
+        }
+        else if (is_window_end)
+        {
+            c.range_end_turn = turns_until_counter;
+            c.found_end_turn_range = true;
+        }
+        else
+        {
+            if (c.name == "Dance Card" && turns_until_counter < 0) //bug: dance card is still in relayCounters after being met
+            {
+                continue;
+            }
+            //if (turns_until_counter >= 0)
+            if (true)
+            {
+                if (turns_until_counter >= 0 || c.name != "Semi-rare")
+                    c.exact_turns.listAppend(MAX(0, turns_until_counter));
+                sort c.exact_turns by value;
+            }
+        }
+        
+        counters[final_name] = c;
+    }
+    
+    /*if (my_path_id() == PATH_LIVE_ASCEND_REPEAT && !(counters contains "Semi-rare"))
+    {
+        //We already have this information:
+        //(won't always be accurate)
+        Counter c = CounterMake();
+        c.name = "Semi-rare";
+        int next_turn = 75;
+        while (next_turn < my_turncount())
+        {
+            next_turn += 110;
+        }
+        next_turn -= my_turncount();
+        c.exact_turns.listAppend(next_turn);
+        counters["Semi-rare"] = c;
+    }*/
+}
+
+Counter [string] __active_counters; //Try to avoid referencing directly
+Counter [string] __active_temp_counters;
+
+boolean __counters_inited = false;
+int __counters_turn_inited = -1;
+string __counters_inited_property_value;
+void CountersInit()
+{
+    if (__counters_inited && __counters_turn_inited == my_turncount() && __counters_inited_property_value == get_property("relayCounters"))
+        return;
+    __counters_inited = true;
+    __counters_turn_inited = my_turncount();
+    __counters_inited_property_value = get_property("relayCounters");
+
+    //parse counters:
+	//Examples:
+	//relayCounters(user, now '1378:Fortune Cookie:fortune.gif', default )
+	//relayCounters(user, now '1539:Semirare window begin loc=*:lparen.gif:1579:Semirare window end loc=*:rparen.gif', default )
+	//relayCounters(user, now '70:Semirare window begin:lparen.gif:80:Semirare window end loc=*:rparen.gif', default )
+	//relayCounters(user, now '1750:Romantic Monster window begin loc=*:lparen.gif:1760:Romantic Monster window end loc=*:rparen.gif', default )
+    //relayCounters(user, now '7604:Fortune Cookie:fortune.gif:7584:Fortune Cookie:fortune.gif', default )
+    //relayCounters(user, now '450:Fortune Cookie:fortune.gif:458:Fortune Cookie:fortune.gif:401:Dance Card loc=109:guildapp.gif', default )
+    //relayCounters(user, now '1271:Nemesis Assassin window begin loc=*:lparen.gif:1286:Nemesis Assassin window end loc=*:rparen.gif:1331:Fortune Cookie:fortune.gif', default )
+    //relayCounters(user, now '695:Nemesis Assassin window begin loc=*:lparen.gif:710:Nemesis Assassin window end loc=*:rparen.gif:780:Fortune Cookie:fortune.gif:685:Dance Card loc=109:guildapp.gif', default )
+    //70:Semirare window begin:lparen.gif:80:Semirare window end loc=*:rparen.gif:57:Digitize Monster:watch.gif:57:Romantic Monster window begin loc=*:lparen.gif:67:Romantic Monster window end loc=*:rparen.gif
+    
+    foreach key in __active_counters
+    {
+        remove __active_counters[key];
+    }
+    foreach key in __active_temp_counters
+    {
+        remove __active_temp_counters[key];
+    }
+    CountersParseProperty("relayCounters", __active_counters, false);
+    CountersParseProperty("_tempRelayCounters", __active_temp_counters, true);
+    
+    //print_html("__active_counters = " + __active_counters.to_json());
+    
+}
+
+Counter CounterLookup(string counter_name, Error found, boolean allow_temp_counters)
+{
+    CountersInit();
+    if (__active_counters contains counter_name)
+    {
+        return __active_counters[counter_name];
+    }
+    else if (allow_temp_counters && __active_temp_counters contains counter_name)
+    {
+        return __active_temp_counters[counter_name];
+    }
+    else
+    {
+        found.ErrorSet();
+        return CounterMake();
+    }
+}
+
+
+Counter CounterLookup(string counter_name, Error found)
+{
+    return CounterLookup(counter_name, found, false);
+}
+
+Counter CounterLookup(string counter_name, boolean allow_temp_counters)
+{
+    return CounterLookup(counter_name, ErrorMake(), allow_temp_counters);
+}
+
+Counter CounterLookup(string counter_name)
+{
+    return CounterLookup(counter_name, ErrorMake());
+}
+
+string [int] CounterGetAllNames(boolean allow_temp_counters)
+{
+    string [int] names;
+    foreach name in __active_counters
+        names.listAppend(name);
+    if (allow_temp_counters)
+    {
+        foreach name in __active_temp_counters
+            names.listAppend(name);
+    }
+    return names;
+}
+
+string [int] CounterGetAllNames()
+{
+    return CounterGetAllNames(false);
+}
+
+void CountersReparse()
+{
+    __counters_inited = false;
+    CountersInit();
+}
+
+
+
+//Bee is wrong, mafia does not track properly.
+boolean [string] __wandering_monster_counter_names = $strings[Romantic Monster,Rain Monster,Holiday Monster,Nemesis Assassin,WoL Monster,Digitize Monster,Enamorang Monster,portscan.edu];
+string [string] __wandering_monster_property_lookups {"Romantic Monster":"romanticTarget", "Digitize Monster": "_sourceTerminalDigitizeMonster", "Enamorang Monster":"enamorangMonster"};
+
+//This is for ascension automation scripts. Call this immediately before adventuring in an adventure.php zone.
+//This will enable tracking of zero-adventure encounters that mean a wandering monster will not appear next turn. Affects CounterWanderingMonsterMayHitNextTurn() only.
+int __last_turn_definitely_visited_adventure_php = -1;
+void CounterAdviseAboutToVisitAdventurePHP()
+{
+    __last_turn_definitely_visited_adventure_php = my_turncount();
+}
+
+void CounterAdviseLastTurnAttemptedAdventurePHP(int turn)
+{
+    __last_turn_definitely_visited_adventure_php = turn;
+}
+
+boolean CounterWanderingMonsterMayHitNextTurn()
+{
+    monster last_monster = get_property_monster("lastEncounter");
+    
+    if (my_path_id() == PATH_THE_SOURCE)
+    {
+        int interval = get_property_int("sourceInterval");
+        if (interval == 200 || interval == 400)
+            return true;
+    }
+    if (get_property("questG04Nemesis") == "step17") //first wanderer in nemesis quest
+        return true;
+    
+    if (__last_turn_definitely_visited_adventure_php == -1 && $monsters[Black Crayon Beast,Black Crayon Beetle,Black Crayon Constellation,Black Crayon Golem,Black Crayon Demon,Black Crayon Man,Black Crayon Elemental,Black Crayon Crimbo Elf,Black Crayon Fish,Black Crayon Goblin,Black Crayon Hippy,Black Crayon Hobo,Black Crayon Shambling Monstrosity,Black Crayon Manloid,Black Crayon Mer-kin,Black Crayon Frat Orc,Black Crayon Penguin,Black Crayon Pirate,Black Crayon Flower,Black Crayon Slime,Black Crayon Undead Thing,Black Crayon Spiraling Shape,angry bassist,blue-haired girl,evil ex-girlfriend,peeved roommate,random scenester] contains last_monster) //bit of a hack - if they just fought a hipster monster (hopefully not faxing it), then the wandering monster isn't up this turn. though... __last_turn_definitely_visited_adventure_php should handle that...
+    {
+        return false;
+    }
+    if (my_turncount() == __last_turn_definitely_visited_adventure_php && __last_turn_definitely_visited_adventure_php != -1) //that adventure didn't advance the counter; no wandering monsters. also, does lights out override wanderers? but, what if there are TWO wandering monsters? the plot thickens
+    {
+        string last_encounter = get_property("lastEncounter");
+        location last_location = get_property_location("lastAdventure");
+        if (!($strings[Lights Out,Wooof! Wooooooof!,Playing Fetch*,Your Dog Found Something Again,Gunbowwowder,Seeing-Eyes Dog] contains last_encounter) && !(last_location != $location[none] && !last_location.locationAllowsWanderingMonsters()))
+            return false;
+    }
+    //FIXME use CounterWanderingMonsterMayHitInXTurns to implement this once we're sure it works
+    foreach s in __wandering_monster_counter_names
+    {
+    	if (s == "WoL Monster" && my_path_id() != PATH_AVATAR_OF_WEST_OF_LOATHING) continue; //mafia bug
+        if (s == "Romantic Monster" && get_property_int("_romanticFightsLeft") == 0) //If mafia's tracking doesn't recognise the monster, then we can override by decrementing the romantic fights left. Added because of the machine elf tunnels.
+            continue;
+        Counter c = CounterLookup(s);
+        if (c.CounterExists() && c.CounterMayHitNextTurn())
+        {
+            return true;
+        }
+    }
+    if (get_property_int("_romanticFightsLeft") > 0 && !CounterLookup("Romantic Monster").CounterExists() && my_path_id() != PATH_ONE_CRAZY_RANDOM_SUMMER) //mafia will clear the romantic monster window if it goes out of bounds
+        return true;
+    
+    //Disabled for now, because this is hard to predict:
+    /*boolean [string] holidays = getHolidaysToday();
+    foreach s in $strings[Feast of Boris,El Dia de Los Muertos Borrachos]
+    {
+        if (!holidays[s]) continue;
+        if (!CounterLookup("Holiday Monster").CounterExists())
+        {
+            return true;
+        }
+    }*/
+    return false;
+}
+
+//only_detect_by_counter_names or in other words "not source agents", which we use in exactly one place for an obscure situation.
+boolean CounterWanderingMonsterMayHitInXTurns(int turns, boolean only_detect_by_counter_names)
+{
+    if (CounterWanderingMonsterMayHitNextTurn() && !only_detect_by_counter_names)
+        return true;
+    foreach s in __wandering_monster_counter_names
+    {
+        if (CounterLookup(s).CounterExists() && CounterLookup(s).CounterMayHitInXTurns(turns))
+            return true;
+    }
+    //if (get_property_int("_romanticFightsLeft") > 0 && !CounterLookup("Romantic Monster").CounterExists() && my_path_id() != PATH_ONE_CRAZY_RANDOM_SUMMER) //mafia will clear the romantic monster window if it goes out of bounds
+        //return true;
+    return false;
+}
+boolean CounterWanderingMonsterMayHitInXTurns(int turns)
+{
+    return CounterWanderingMonsterMayHitInXTurns(turns, false);
+}
+
+boolean CounterWanderingMonsterWillHitInXTurns(int turns)
+{
+    //CounterWillHitExactlyInTurnRange
+    foreach s in __wandering_monster_counter_names
+    {
+        if (CounterLookup(s).CounterExists() && CounterLookup(s).CounterWillHitExactlyInTurnRange(0, turns))
+            return true;
+    }
+    return false;
+}
+
+Counter [int] CounterWanderingMonsterWindowsActiveInXTurns(int turns)
+{
+    Counter [int] result;
+    foreach s in __wandering_monster_counter_names
+    {
+        Counter c = CounterLookup(s);
+        if (c.CounterExists() && c.CounterMayHitInXTurns(turns))
+            result[result.count()] = c;
+    }
+    return result;
+}
+
+Counter [int] CounterWanderingMonsterWindowsActiveNextTurn()
+{
+    Counter [int] result;
+    if (!CounterWanderingMonsterMayHitNextTurn())
+        return result;
+    foreach s in __wandering_monster_counter_names
+    {
+        Counter c = CounterLookup(s);
+        if (c.CounterExists() && c.CounterMayHitNextTurn())
+            result[result.count()] = c;
+    }
+    return result;
+}
+
+boolean [monster] CounterWanderingMonstersActiveNextTurn()
+{
+    boolean [monster] result;
+    foreach key, c in CounterWanderingMonsterWindowsActiveNextTurn()
+    {
+        if (__wandering_monster_property_lookups contains c.name)
+            result[get_property_monster(__wandering_monster_property_lookups[c.name])] = true;
+        //result
+    }
+    //FIXME determine Rain Monster,Holiday Monster,Nemesis Assassin,Bee,WoL Monster
+    return result;
+}
+
+boolean [monster] CounterWanderingMonstersActiveInXTurns(int turns)
+{
+    boolean [monster] result;
+    foreach key, c in CounterWanderingMonsterWindowsActiveInXTurns(turns)
+    {
+        if (__wandering_monster_property_lookups contains c.name)
+            result[get_property_monster(__wandering_monster_property_lookups[c.name])] = true;
+        //result
+    }
+    //FIXME determine Rain Monster,Holiday Monster,Nemesis Assassin,Bee,WoL Monster
+    return result;
+}
+
+boolean CounterWanderingMonsterCountersHaveRange()
+{
+    foreach s in __wandering_monster_counter_names
+    {
+        Counter c = CounterLookup(s);
+        if (!c.CounterExists())
+            continue;
+        if (c.CounterIsRange())
+            return true;
+    }
+    return false;
+}
+
+
+boolean CounterWanderingMonsterWillHitNextTurn()
+{
+    if (!CounterWanderingMonsterMayHitNextTurn())
+        return false;
+    foreach key, c in CounterWanderingMonsterWindowsActiveNextTurn()
+    {
+        if (c.CounterWillHitNextTurn())
+            return true;
+    }
+    return false;
+}
+
+boolean CounterWanderingMonstersCurrentlyActiveNextTurnAreFree()
+{
+    boolean [monster] monsters = CounterWanderingMonstersActiveNextTurn();
+    if (monsters.count() == 0)
+        return false;
+    foreach m in monsters
+    {
+        if (!m.monster_has_zero_turn_cost())
+            return false;
+    }
+    return true;
+}
+
+
+boolean CounterWanderingMonstersCurrentlyAroundAreFree()
+{
+    boolean [monster] monsters = CounterWanderingMonstersActiveInXTurns(10000); //FIXME better
+    if (monsters.count() == 0)
+        return false;
+    foreach m in monsters
+    {
+        if (!m.monster_has_zero_turn_cost())
+            return false;
+    }
+    return true;
+}
+
+boolean CounterWanderingMonstersCurrentlyAroundAreExact() //not exclusively, but at least one is
+{
+    foreach key, c in CounterWanderingMonsterWindowsActiveInXTurns(10000) //FIXME better
+    {
+        if (c.CounterExists() && !c.CounterIsRange())
+            return true;
+    }
+    return false;
+}
+
+CountersInit();
 
 
 
@@ -6785,6 +7600,145 @@ int CatBurglarChargesLeftToday()
     int heists_complete = get_property_int("_catBurglarHeistsComplete");
     //print_html("heists_gained_today = " + heists_gained_today + ", heists_complete = " + heists_complete); 
     return get_property_int("catBurglarBankHeists") + heists_gained_today - heists_complete;
+}
+
+
+int PathCommunityServiceEstimateTurnsTakenForTask(string service_name)
+{
+    int turns = 60;
+    if (service_name == "Donate Blood")
+    {
+        turns = 60 - (my_maxhp() - (my_buffedstat($stat[muscle]) + 3)) / 30;
+    }
+    else if (service_name == "Coil Wire")
+    {
+        turns = 60;
+    }
+    else if (service_name == "Make Margaritas")
+    {
+        turns = 60 - (floor(numeric_modifier("Item Drop") / 30) + floor(numeric_modifier("Booze Drop") / 15));
+    }
+    else if (service_name == "Feed The Children (But Not Too Much)" || service_name == "Build Playground Mazes" || service_name == "Feed Conspirators")
+    {
+        stat using_stat;
+        if (service_name == "Feed The Children (But Not Too Much)")
+        {
+            using_stat = $stat[muscle];
+        }
+        else if (service_name == "Build Playground Mazes")
+        {
+            using_stat = $stat[mysticality];
+        }
+        else if (service_name == "Feed Conspirators")
+        {
+            using_stat = $stat[moxie];
+        }
+        int basestat = my_basestat(using_stat);
+        boolean relevant_thrall_active = false;
+        if (my_thrall() == $thrall[Elbow Macaroni] && using_stat == $stat[muscle])
+        {
+            basestat = my_basestat($stat[mysticality]);
+            relevant_thrall_active = true;
+        }
+        if (my_thrall() == $thrall[Penne Dreadful] && using_stat == $stat[moxie])
+        {
+            basestat = my_basestat($stat[mysticality]);
+            relevant_thrall_active = true;
+        }
+        
+        turns = 60 - (my_buffedstat(using_stat) - basestat) / 30;
+    }
+    else if (service_name == "Reduce Gazelle Population")
+    {
+        float modifier_1 = numeric_modifier("Weapon Damage");
+        float modifier_2 = numeric_modifier("Weapon Damage Percent");
+        
+        foreach s in $slots[hat,weapon,off-hand,back,shirt,pants,acc1,acc2,acc3,familiar]
+        {
+        	item it = s.equipped_item();
+            if (it.to_slot() != $slot[weapon]) continue;
+            int power = it.get_power();
+            float addition = to_float(power) * 0.15;
+            
+            modifier_1 -= addition;
+        }
+        if ($effect[bow-legged swagger].have_effect() > 0)
+        {
+            modifier_1 *= 2;
+            modifier_2 *= 2;
+        }
+        turns = 60 - (floor(modifier_1 / 50) + floor(modifier_2 / 50));
+    }
+    else if (service_name == "Make Sausage")
+    {
+        turns = 60 - (floor(numeric_modifier("Spell Damage") / 50) + floor(numeric_modifier("Spell Damage Percent") / 50));
+    }
+    else if (service_name == "Clean Steam Tunnels")
+    {
+        turns = 60 - numeric_modifier("Hot Resistance");
+    }
+    else if (service_name == "Breed More Collies")
+    {
+        int current_familiar_weight = my_familiar().effective_familiar_weight() + numeric_modifier("familiar weight");
+        turns = 60 - floor(current_familiar_weight / 5);
+    }
+    else if (service_name == "Be a Living Statue")
+    {
+        float combat_rate_raw = numeric_modifier("Combat Rate");
+        int combat_rate_inverse = 0;
+        if (combat_rate_raw < 0) combat_rate_inverse = -combat_rate_raw;
+        if (combat_rate_inverse > 25) combat_rate_inverse = (combat_rate_inverse - 25) * 5 + 25;
+        turns = 60 - floor(combat_rate_inverse / 5) * 3;
+    }
+    
+    turns = clampi(turns, 1, 60);
+    
+    return turns;
+}
+
+
+
+Record KramcoSausageFightInformation 
+{
+    boolean goblin_will_appear;
+    int turns_to_next_guaranteed_fight;
+    float probability_of_sausage_fight;
+};
+
+KramcoSausageFightInformation KramcoCalculateSausageFightInformation()
+{
+    KramcoSausageFightInformation information;
+    int last_sausage_turn = get_property_int("_lastSausageMonsterTurn"); //FIXME
+    int sausage_fights = get_property_int("_sausageFights");
+    
+    
+    
+    //These ceilings are not correct; they are merely what I have spaded so far. The actual values are higher.
+    int [int] observed_ceilings = {0, 7, 10, 13, 16, 19, 23, 33, 50, 85, 149, 157, 157, 157, 181, 189, 189, 189, 189, 209};
+    
+    int turn_will_always_see_goblin = observed_ceilings[sausage_fights];
+    
+    int delta = total_turns_played() - last_sausage_turn;
+    
+    
+    information.turns_to_next_guaranteed_fight = MAX(0, turn_will_always_see_goblin - delta);
+    //Goblins do not appear on the same turn as semi-rares.
+    if (information.turns_to_next_guaranteed_fight == 0 && CounterLookup("Semi-rare").CounterGetNextExactTurn() == 0)
+    	information.turns_to_next_guaranteed_fight += 1;
+    
+    if (!(observed_ceilings contains sausage_fights))
+         information.turns_to_next_guaranteed_fight = -1;
+      
+    if (turn_will_always_see_goblin > 1)
+    {
+        //This is probably wrong?
+        float probability_each_incorrect = 1.0 / to_float(turn_will_always_see_goblin - 1);
+        information.probability_of_sausage_fight = clampf((delta + 1) * probability_each_incorrect, 0.0, 1.0);
+    }
+    information.goblin_will_appear = information.turns_to_next_guaranteed_fight == 0;
+    
+    
+    return information;
 }
 
 boolean asdonShouldRejectItem(item it)
@@ -7897,7 +8851,7 @@ void handleRelayRequest()
 	full_replacement_text.append("<b>Asdon Martin v" + __asdon_version + "</b></td></tr><tr><td style=\"padding: 5px; border: 1px solid blue;\">");
 	full_replacement_text.append(gui);
 	full_replacement_text.append("</td></tr><tr><td height=4></td></tr></table>");
-	matcher matchr = create_matcher("<b>Results:</b></td></tr><tr><td style=.padding: 5px; border: 1px solid blue;.>(.*?)</td></tr><tr><td height=4></td></tr></table>", page_text);
+	matcher matchr = create_matcher("<b>Results:</b></td></tr><tr><td style=.padding: 5px; border: 1px [^;]*;.>(.*?)</td></tr><tr><td height=4></td></tr></table>", page_text);
 	string out_page_text = replace_first(matchr, full_replacement_text);
 	write(out_page_text);
 }
