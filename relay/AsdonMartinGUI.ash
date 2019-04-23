@@ -5145,7 +5145,7 @@ static
 
 boolean __setting_output_debug_text = false;
 string __setting_grey_colour = "#87888A";
-string __asdon_version = "1.0.7";
+string __asdon_version = "1.0.8";
 //Library for checking if any given location is unlocked.
 //Similar to canadv.ash, except there's no code for using items and no URLs are (currently) visited. This limits our accuracy.
 //Currently, most locations are missing, sorry.
@@ -8848,7 +8848,7 @@ void handleRelayRequest()
 	buffer gui = generateGUI();
 	
 	buffer full_replacement_text;
-	full_replacement_text.append("<b>Asdon Martin v" + __asdon_version + "</b></td></tr><tr><td style=\"padding: 5px; border: 1px solid blue;\">");
+	full_replacement_text.append("<b>Asdon Martin v" + __asdon_version + "</b></td></tr><tr><td style=\"padding: 5px; border: 1px solid " + get_property("defaultBorderColor") + ";\">");
 	full_replacement_text.append(gui);
 	full_replacement_text.append("</td></tr><tr><td height=4></td></tr></table>");
 	matcher matchr = create_matcher("<b>Results:</b></td></tr><tr><td style=.padding: 5px; border: 1px [^;]*;.>(.*?)</td></tr><tr><td height=4></td></tr></table>", page_text);
