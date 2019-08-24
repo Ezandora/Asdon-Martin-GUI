@@ -1098,6 +1098,18 @@ int listKeyForIndex(monster [int] list, int index)
 	return -1;
 }
 
+int listKeyForIndex(int [int] list, int index)
+{
+    int i = 0;
+    foreach key in list
+    {
+        if (i == index)
+            return key;
+        i += 1;
+    }
+    return -1;
+}
+
 int llistKeyForIndex(string [int][int] list, int index)
 {
 	int i = 0;
@@ -1152,6 +1164,15 @@ monster listGetRandomObject(monster [int] list)
         return $monster[none];
     if (list.count() == 1)
     	return list[listKeyForIndex(list, 0)];
+    return list[listKeyForIndex(list, random(list.count()))];
+}
+
+int listGetRandomObject(int [int] list)
+{
+    if (list.count() == 0)
+        return -1;
+    if (list.count() == 1)
+        return list[listKeyForIndex(list, 0)];
     return list[listKeyForIndex(list, random(list.count()))];
 }
 
@@ -1270,6 +1291,7 @@ int [int] stringToIntIntList(string input, string delimiter)
 		return out;
 	foreach key, v in input.split_string(delimiter)
 	{
+		if (v == "") continue;
 		out.listAppend(v.to_int());
 	}
 	return out;
@@ -1469,7 +1491,7 @@ string HTMLGreyOutTextUnlessTrue(string text, boolean conditional)
     return HTMLGenerateSpanFont(text, "gray");
 }
 //These settings are for development. Don't worry about editing them.
-string __version = "1.4.39a1";
+string __version = "1.4.39";
 
 //Debugging:
 boolean __setting_debug_mode = false;
@@ -2537,12 +2559,18 @@ string capitaliseFirstLetter(string v)
 	return buf.to_string();
 }
 
+//shadowing; this may override ints
 string pluralise(float value, string non_plural, string plural)
 {
+	string value_out = "";
+	if (value.to_int() == value)
+		value_out = value.to_int();
+    else
+    	value_out = value;
 	if (value == 1.0)
-		return value + " " + non_plural;
+		return value_out + " " + non_plural;
 	else
-		return value + " " + plural;
+		return value_out + " " + plural;
 }
 
 string pluralise(int value, string non_plural, string plural)
@@ -2987,13 +3015,19 @@ static
     int PATH_DARK_GYFFTE = 35;
     int PATH_DARK_GIFT = 35;
     int PATH_VAMPIRE = 35;
+    int PATH_2CRS = 36;
+    int PATH_KINGDOM_OF_EXPLOATHING = 37;
+    int PATH_EXPLOSION = 37;
+    int PATH_EXPLOSIONS = 37;
+    int PATH_EXPLODING = 37;
+    int PATH_EXPLODED = 37;
 }
 
+
 int __my_path_id_cached = -11;
-int my_path_id()
+
+int initialiseMyPathID()
 {
-    if (__my_path_id_cached != -11)
-        return __my_path_id_cached;
     string path_name = my_path();
     
     if (path_name == "" || path_name == "None")
@@ -3059,11 +3093,21 @@ int my_path_id()
     else if (path_name == "G-Lover" || path_name == "33")
         __my_path_id_cached = PATH_G_LOVER;
     else if (path_name == "Disguises Delimit" || path_name == 34)
-    	__my_path_id_cached = PATH_DISGUISES_DELIMIT;
+        __my_path_id_cached = PATH_DISGUISES_DELIMIT;
     else if (path_name == "Dark Gyffte")
-    	__my_path_id_cached = PATH_DARK_GYFFTE;
+        __my_path_id_cached = PATH_DARK_GYFFTE;
+    else if (path_name == "36" || path_name == "Two Crazy Random Summer")
+        __my_path_id_cached = PATH_2CRS;
+    else if (path_name == "37" || path_name == "Kingdom of Exploathing")
+    	__my_path_id_cached = PATH_EXPLOSION;
     else
         __my_path_id_cached = PATH_UNKNOWN;
+    return __my_path_id_cached;
+}
+initialiseMyPathID();
+
+int my_path_id()
+{
     return __my_path_id_cached;
 }
 
@@ -3285,6 +3329,26 @@ static
     monster [location] __protonic_monster_for_location {$location[Cobb's Knob Treasury]:$monster[The ghost of Ebenoozer Screege], $location[The Haunted Conservatory]:$monster[The ghost of Lord Montague Spookyraven], $location[The Haunted Gallery]:$monster[The ghost of Waldo the Carpathian], $location[The Haunted Kitchen]:$monster[The Icewoman], $location[The Haunted Wine Cellar]:$monster[The ghost of Jim Unfortunato], $location[The Icy Peak]:$monster[The ghost of Sam McGee], $location[Inside the Palindome]:$monster[Emily Koops, a spooky lime], $location[Madness Bakery]:$monster[the ghost of Monsieur Baguelle], $location[The Old Landfill]:$monster[The ghost of Vanillica "Trashblossom" Gorton], $location[The Overgrown Lot]:$monster[the ghost of Oily McBindle], $location[The Skeleton Store]:$monster[boneless blobghost], $location[The Smut Orc Logging Camp]:$monster[The ghost of Richard Cockingham], $location[The Spooky Forest]:$monster[The Headless Horseman]};
 }
 
+
+
+static
+{
+	boolean [monster][location] __monsters_natural_habitats;
+}
+boolean [location] getPossibleLocationsMonsterCanAppearInNaturally(monster m)
+{
+	if (__monsters_natural_habitats.count() == 0)
+	{
+		//initialise:
+        foreach l in $locations[]
+        {
+        	foreach key, m in l.get_monsters()
+            	__monsters_natural_habitats[m][l] = true;
+        }
+	}
+	return __monsters_natural_habitats[m];
+}
+
 boolean mafiaIsPastRevision(int revision_number)
 {
     if (get_revision() <= 0) //get_revision reports zero in certain cases; assume they're on a recent version
@@ -3353,6 +3417,16 @@ boolean a_skill_is_usable(boolean [skill] skills)
 		if (s.skill_is_usable()) return true;
 	}
 	return false;
+}
+
+boolean skill_is_currently_castable(skill s)
+{
+	//FIXME accordion thief songs, MP, a lot of things
+    if (s == $skill[Utensil Twist] && $slot[weapon].equipped_item().item_type() != "utensil")
+    {
+        return false;
+    }
+    return true;
 }
 
 boolean item_is_usable(item it)
@@ -3652,18 +3726,39 @@ int substatsForLevel(int level)
 
 int availableFullness()
 {
-	return fullness_limit() - my_fullness();
+	int limit = fullness_limit();
+    if (my_path_id() == PATH_ACTUALLY_ED_THE_UNDYING && limit == 0 && $skill[Replacement Stomach].have_skill())
+    {
+        limit += 5;
+    }
+	return limit - my_fullness();
 }
 
 int availableDrunkenness()
 {
-    if (inebriety_limit() == 0) return 0; //certain edge cases
-	return inebriety_limit() - my_inebriety();
+    int limit = inebriety_limit();
+    if (my_path_id() == PATH_ACTUALLY_ED_THE_UNDYING && limit == 0 && $skill[Replacement Liver].have_skill())
+    {
+    	limit += 5;
+    }
+    if (limit == 0) return 0; //certain edge cases
+	return limit - my_inebriety();
 }
 
 int availableSpleen()
 {
-	return spleen_limit() - my_spleen_use();
+	int limit = spleen_limit();
+	if (my_path_id() == PATH_ACTUALLY_ED_THE_UNDYING && limit == 0)
+	{
+        limit += 5; //always true
+		//mafia resets the limits to zero in the underworld because it does, so anti-mafia:
+        foreach s in $skills[Extra Spleen,Another Extra Spleen,Yet Another Extra Spleen,Still Another Extra Spleen,Just One More Extra Spleen,Okay Seriously\, This is the Last Spleen]
+        {
+        	if (s.have_skill())
+         		limit += 5;
+        }
+	} 
+	return limit - my_spleen_use();
 }
 
 item [int] missingComponentsToMakeItemPrivateImplementation(item it, int it_amounted_needed, int recursion_limit_remaining)
@@ -4541,7 +4636,7 @@ float averageAdventuresForConsumable(item it, boolean assume_monday)
             adventures = 9; //saved across lifetimes
     }
 	
-	if ($skill[saucemaven].have_skill() && ($items[hot hi mein,cold hi mein,sleazy hi mein,spooky hi mein,stinky hi mein,Hell ramen,fettucini Inconnu,gnocchetti di Nietzsche,spaghetti with Skullheads,spaghetti con calaveras] contains it || lookupItems("haunted hell ramen") contains it))
+	if ($skill[saucemaven].have_skill() && ($items[hot hi mein,cold hi mein,sleazy hi mein,spooky hi mein,stinky hi mein,Hell ramen,fettucini Inconnu,gnocchetti di Nietzsche,spaghetti with Skullheads,spaghetti con calaveras,Fleetwood mac 'n' cheese,haunted hell ramen] contains it))
 	{
 		if ($classes[sauceror,pastamancer] contains my_class())
 			adventures += 5;
@@ -4892,6 +4987,25 @@ void printSilent(string line)
     print_html(line.processStringForPrinting());
 }
 
+//have_equipped() exists
+boolean equipped(item it)
+{
+	return it.equipped_amount() > 0;
+}
+
+boolean have(item it)
+{
+	return it.available_amount() > 0;
+}
+
+boolean canAccessMall()
+{
+	if (!can_interact()) return false;
+	if (!get_property_boolean("autoSatisfyWithMall")) return false;
+	if (my_ascensions() == 0 && !get_property_ascension("lastDesertUnlock")) return false;
+	return true;
+}
+
 Record Banish
 {
     monster banished_monster;
@@ -4955,6 +5069,7 @@ static
     __banish_source_length["spring-loaded front bumper"] = 30;
     __banish_source_length["mafia middle finger ring"] = 60;
     __banish_source_length["throw latte on opponent"] = 30; //Throw Latte on Opponent
+    __banish_source_length["saber force"] = 30;
     
     int [string] __banish_simultaneous_limit;
     __banish_simultaneous_limit["beancannon"] = 5;
@@ -5145,7 +5260,7 @@ static
 
 boolean __setting_output_debug_text = false;
 string __setting_grey_colour = "#87888A";
-string __asdon_version = "1.0.8";
+string __asdon_version = "1.0.9";
 //Library for checking if any given location is unlocked.
 //Similar to canadv.ash, except there's no code for using items and no URLs are (currently) visited. This limits our accuracy.
 //Currently, most locations are missing, sorry.
@@ -5274,6 +5389,13 @@ QuestState QuestState(string property_name)
 {
 	QuestState state;
     QuestStateParseMafiaQuestProperty(state, property_name);
+    return state;
+}
+
+QuestState QuestStateFromManualStep(string manual_value)
+{
+    QuestState state;
+    state.QuestStateParseMafiaQuestPropertyValue(manual_value);
     return state;
 }
 
@@ -5867,6 +5989,8 @@ boolean locationAvailablePrivateCheck(location loc, Error able_to_find)
             return QuestState("questM25Armorer").started;
         case $location[sonofa beach]:
             return QuestState("questL12War").mafia_internal_step >= 2;
+        case $location[the spooky gravy burrow]:
+        	return QuestState("questM03Bugbear").mafia_internal_step >= 3;
 		default:
 			break;
 	}
@@ -5926,6 +6050,11 @@ void locationAvailablePrivateInit()
 	//locations_unlocked_by_item[$location[The Haunted Gallery]] = $item[spookyraven gallery key];
 	locations_unlocked_by_item[$location[The Castle in the Clouds in the Sky (Basement)]] = $item[S.O.C.K.];
 	locations_unlocked_by_item[$location[the hole in the sky]] = $item[steam-powered model rocketship];
+    if (my_path_id() == PATH_EXPLOSION)
+    {
+        locations_unlocked_by_item[$location[The Castle in the Clouds in the Sky (Basement)]] = $item[none];
+        locations_unlocked_by_item[$location[the hole in the sky]] = $item[none];
+    }
 	
 	locations_unlocked_by_item[$location[Vanya's Castle Foyer]] = $item[map to Vanya's Castle];
 	
@@ -5959,7 +6088,7 @@ void locationAvailablePrivateInit()
 	
 	foreach loc in locations_unlocked_by_item
 	{
-		if (locations_unlocked_by_item[loc].available_amount() > 0)
+		if (locations_unlocked_by_item[loc].available_amount() > 0 || locations_unlocked_by_item[loc] == $item[none])
 			__la_location_is_available[loc] = true;
 		else
 			__la_location_is_available[loc] = false;
@@ -6397,6 +6526,7 @@ static
         lookup_map["An Eldritch Horror"] = "place.php?whichplace=town";
         lookup_map["The Neverending Party"] = "place.php?whichplace=town_wrong";
         lookup_map["Through the Spacegate"] = "place.php?whichplace=spacegate";
+        lookup_map["The Exploaded Battlefield"] = "place.php?whichplace=exploathing";
         __constant_clickable_urls = LAConvertLocationLookupToLocations(lookup_map);
     }
     initialiseConstantClickableURLs();
@@ -7205,6 +7335,7 @@ boolean CounterWanderingMonsterMayHitInXTurns(int turns, boolean only_detect_by_
         return true;
     foreach s in __wandering_monster_counter_names
     {
+        if (s == "WoL Monster" && my_path_id() != PATH_AVATAR_OF_WEST_OF_LOATHING) continue; //mafia bug
         if (CounterLookup(s).CounterExists() && CounterLookup(s).CounterMayHitInXTurns(turns))
             return true;
     }
@@ -7222,6 +7353,7 @@ boolean CounterWanderingMonsterWillHitInXTurns(int turns)
     //CounterWillHitExactlyInTurnRange
     foreach s in __wandering_monster_counter_names
     {
+        if (s == "WoL Monster" && my_path_id() != PATH_AVATAR_OF_WEST_OF_LOATHING) continue; //mafia bug
         if (CounterLookup(s).CounterExists() && CounterLookup(s).CounterWillHitExactlyInTurnRange(0, turns))
             return true;
     }
@@ -7233,6 +7365,7 @@ Counter [int] CounterWanderingMonsterWindowsActiveInXTurns(int turns)
     Counter [int] result;
     foreach s in __wandering_monster_counter_names
     {
+        if (s == "WoL Monster" && my_path_id() != PATH_AVATAR_OF_WEST_OF_LOATHING) continue; //mafia bug
         Counter c = CounterLookup(s);
         if (c.CounterExists() && c.CounterMayHitInXTurns(turns))
             result[result.count()] = c;
@@ -7247,6 +7380,7 @@ Counter [int] CounterWanderingMonsterWindowsActiveNextTurn()
         return result;
     foreach s in __wandering_monster_counter_names
     {
+        if (s == "WoL Monster" && my_path_id() != PATH_AVATAR_OF_WEST_OF_LOATHING) continue; //mafia bug
         Counter c = CounterLookup(s);
         if (c.CounterExists() && c.CounterMayHitNextTurn())
             result[result.count()] = c;
@@ -7284,6 +7418,7 @@ boolean CounterWanderingMonsterCountersHaveRange()
 {
     foreach s in __wandering_monster_counter_names
     {
+        if (s == "WoL Monster" && my_path_id() != PATH_AVATAR_OF_WEST_OF_LOATHING) continue; //mafia bug
         Counter c = CounterLookup(s);
         if (!c.CounterExists())
             continue;
@@ -7301,7 +7436,9 @@ boolean CounterWanderingMonsterWillHitNextTurn()
     foreach key, c in CounterWanderingMonsterWindowsActiveNextTurn()
     {
         if (c.CounterWillHitNextTurn())
+        {
             return true;
+        }
     }
     return false;
 }
@@ -7616,7 +7753,17 @@ int PathCommunityServiceEstimateTurnsTakenForTask(string service_name)
     }
     else if (service_name == "Make Margaritas")
     {
-        turns = 60 - (floor(numeric_modifier("Item Drop") / 30) + floor(numeric_modifier("Booze Drop") / 15));
+    	float item_drop = numeric_modifier("Item Drop");
+        //Mafia adds item drop modifiers depending on our location.
+        //set_location() is slow, we want to avoid it.
+        //Manually correct:
+        if ($skill[Speluck].have_skill() && my_location().environment == "underground")
+        {
+        	item_drop -= 5.0;
+            if ($effect[Steely-Eyed Squint].have_effect() > 0)
+            	item_drop -= 5.0;
+        }
+        turns = 60 - (floor(item_drop / 30) + floor(numeric_modifier("Booze Drop") / 15));
     }
     else if (service_name == "Feed The Children (But Not Too Much)" || service_name == "Build Playground Mazes" || service_name == "Feed Conspirators")
     {
@@ -7714,7 +7861,7 @@ KramcoSausageFightInformation KramcoCalculateSausageFightInformation()
     
     
     //These ceilings are not correct; they are merely what I have spaded so far. The actual values are higher.
-    int [int] observed_ceilings = {0, 7, 10, 13, 16, 19, 23, 33, 50, 85, 149, 157, 157, 157, 181, 189, 189, 189, 189, 209};
+    int [int] observed_ceilings = {0, 7, 10, 13, 16, 19, 23, 33, 54, 93, 154, 219, 220, 220, 220, 220, 220, 220, 220, 220, 220, 220, 220, 220, 220, 220, 220, 220, 220, 220};
     
     int turn_will_always_see_goblin = observed_ceilings[sausage_fights];
     
@@ -8291,8 +8438,6 @@ buffer generateFuelText()
     if (!get_property_boolean("kingLiberated") && my_path_id() != PATH_COMMUNITY_SERVICE)
     {
         //Quest reserves:
-        if (!($item[talisman o' namsilat].available_amount() > 0 || QuestState("questM12Pirate").mafia_internal_step >= 5))
-            reserve_list[$item[hot wing]] = 3;
         if (!(QuestState("questL11Palindome").mafia_internal_step >= 5 || $item[wet stunt nut stew].available_amount() > 0))
         {
             reserve_list[$item[stunt nuts]] = 1;
@@ -8316,6 +8461,7 @@ buffer generateFuelText()
         if (QuestState("questL10Garbage").mafia_internal_step < 2)
             reserve_list[$item[enchanted bean]] = 1;
     }
+    craftable_blacklist[$item[ghostly ectoplasm]] = true;
     foreach it in reserve_list
         craftable_blacklist[it] = true;
     foreach it in $items[bottle of vodka,bottle of rum,boxed wine,bottle of gin,bottle of whiskey,bottle of tequila]
@@ -8638,6 +8784,9 @@ string asdonFuelUpTo(int target_fuel)
                 chosen_efficiency = efficiency_current;
                 buy_exclusively_from_mall = true;
             }
+        }
+        if (my_ascensions() >= 10) //FIXME do we need desert access to reach the gift shop? secondly, does mafia care about that...?
+        {
         }
         //FIXME add all-purpose flower
         if (!can_interact() && ($item[wad of dough].npc_price() <= 0 || $item[soda water].npc_price() <= 0))
