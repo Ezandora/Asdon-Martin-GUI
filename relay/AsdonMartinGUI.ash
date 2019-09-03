@@ -1491,7 +1491,7 @@ string HTMLGreyOutTextUnlessTrue(string text, boolean conditional)
     return HTMLGenerateSpanFont(text, "gray");
 }
 //These settings are for development. Don't worry about editing them.
-string __version = "1.4.39";
+string __version = "1.4.41a1";
 
 //Debugging:
 boolean __setting_debug_mode = false;
@@ -5260,7 +5260,7 @@ static
 
 boolean __setting_output_debug_text = false;
 string __setting_grey_colour = "#87888A";
-string __asdon_version = "1.0.9";
+string __asdon_version = "1.0.10";
 //Library for checking if any given location is unlocked.
 //Similar to canadv.ash, except there's no code for using items and no URLs are (currently) visited. This limits our accuracy.
 //Currently, most locations are missing, sorry.
@@ -5991,6 +5991,12 @@ boolean locationAvailablePrivateCheck(location loc, Error able_to_find)
             return QuestState("questL12War").mafia_internal_step >= 2;
         case $location[the spooky gravy burrow]:
         	return QuestState("questM03Bugbear").mafia_internal_step >= 3;
+        case $location[The Copperhead Club]:
+            return QuestState("questL11MacGuffin").mafia_internal_step >= 3; //FIXME no idea, diary?
+        case $location[A mob of zeppelin protesters]:
+            return QuestState("questL11MacGuffin").mafia_internal_step >= 3; //FIXME no idea, diary?
+        case $location[The Red Zeppelin]:
+            return QuestState("questL11MacGuffin").mafia_internal_step >= 3 && get_property_int("zeppelinProtestors") >= 80; //FIXME not quite right, diary?; also NC needs to be visited first
 		default:
 			break;
 	}
@@ -6769,6 +6775,8 @@ boolean locationAllowsWanderingMonsters(location l)
 {
     if ($locations[The Shore\, Inc. Travel Agency,Noob Cave,The Dire Warren] contains l)
         return false;
+    if ($locations[The Daily Dungeon,An Overgrown Shrine (Northwest),An Overgrown Shrine (Southwest),An Overgrown Shrine (Northeast),An Overgrown Shrine (Southeast),A Massive Ziggurat] contains l) //warning: I have not personally verified these
+    	return false;
     if (l == $location[The X-32-F Combat Training Snowman])
         return false;
     if ($locations[Gingerbread Industrial Zone,Gingerbread Train Station,Gingerbread Sewers,Gingerbread Upscale Retail District] contains l && l != $location[none])
@@ -7677,7 +7685,7 @@ item [int] asdonMartinGenerateListOfFuelables()
             
         float soda_bread_efficiency = to_float($item[wad of dough].npc_price() + $item[soda water].npc_price()) / 6.0;
         if (soda_bread_efficiency < 1.0) soda_bread_efficiency = 100000.0;
-        if (it.autosell_price() > 0 && it.autosell_price().to_float() / average_adventures > soda_bread_efficiency)
+        if (it.autosell_price() > 0 && it.autosell_price().to_float() / average_adventures > soda_bread_efficiency && my_path_id() != PATH_EXPLOSIONS)
         {
             continue;
         }
@@ -7890,7 +7898,8 @@ KramcoSausageFightInformation KramcoCalculateSausageFightInformation()
 
 boolean asdonShouldRejectItem(item it)
 {
-    boolean [item] blacklist;
+    boolean [item] blacklist = $items[ghostly ectoplasm];
+    if (blacklist[it]) return true;
 	if (it.item_amount() == 0)
 	{
 		string craft_type = it.craft_type();
