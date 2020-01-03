@@ -838,6 +838,14 @@ boolean [monster] listCopy(boolean [monster] l)
     return result;
 }
 
+int [item] listCopy(int [item] l)
+{
+    int [item] result;
+    foreach key in l
+        result[key] = l[key];
+    return result;
+}
+
 //Strict, in this case, means the keys start at 0, and go up by one per entry. This allows easy consistent access
 boolean listKeysMeetStrictRequirements(string [int] list)
 {
@@ -5260,7 +5268,7 @@ static
 
 boolean __setting_output_debug_text = false;
 string __setting_grey_colour = "#87888A";
-string __asdon_version = "1.0.10";
+string __asdon_version = "1.0.11";
 //Library for checking if any given location is unlocked.
 //Similar to canadv.ash, except there's no code for using items and no URLs are (currently) visited. This limits our accuracy.
 //Currently, most locations are missing, sorry.
@@ -8824,9 +8832,9 @@ string asdonFuelUpTo(int target_fuel)
         {
             return minimum_sources_needed + " * " + price_per_source + " > " + my_meat();
         }
-        if (minimum_sources_needed <= 0 || minimum_sources_needed >= 120)
+        if (minimum_sources_needed <= 0 || minimum_sources_needed >= 150)
         {
-            abort("minimum_sources_needed = " + minimum_sources_needed);
+            abort("Script wants to use " + minimum_sources_needed + " of " + chosen_source + ", and we're stopping it as a safety limit.");
             return "minimum_sources_needed is too large or small at " + minimum_sources_needed;
         }
         if (buy_exclusively_from_mall)
