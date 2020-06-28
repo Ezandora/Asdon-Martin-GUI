@@ -1310,6 +1310,13 @@ int [int] stringToIntIntList(string input)
 	return stringToIntIntList(input, ",");
 }
 
+boolean [location] locationToLocationMap(location l)
+{
+	boolean [location] map;
+	map[l] = true;
+	return map;
+}
+
 
 float __setting_indention_width_in_em = 1.45;
 string __setting_indention_width = __setting_indention_width_in_em + "em";
@@ -1503,6 +1510,7 @@ string __version = "1.4.41a1";
 
 //Debugging:
 boolean __setting_debug_mode = false;
+boolean debug = __setting_debug_mode; //if (debug)
 boolean __setting_debug_enable_example_mode_in_aftercore = false; //for testing. Will give false information, so don't enable
 boolean __setting_debug_show_all_internal_states = false; //displays usable images/__misc_state/__misc_state_string/__misc_state_int/__quest_state
 
@@ -1639,6 +1647,13 @@ Page Page()
 	return __global_page;
 }
 
+Page PageResetGlobalPage()
+{
+	Page new_page;
+	__global_page = new_page;
+	return __global_page;
+}
+
 buffer PageGenerateBodyContents(Page page_in)
 {
     return page_in.body_contents;
@@ -1722,6 +1737,22 @@ buffer PageGenerate(Page page_in)
 void PageGenerateAndWriteOut(Page page_in)
 {
 	write(PageGenerate(page_in));
+}
+
+buffer PageGenerateAsElementInBody(Page page_in)
+{
+	//In this mode, we don't generate an entire page - just one node in the body tag.
+	//Includes style.
+	
+    buffer result;
+    result.append(PageGenerateStyle(page_in));
+    result.append(page_in.body_contents);
+    return result;
+}
+
+buffer PageGenerateAsElementInBody()
+{
+	return Page().PageGenerateAsElementInBody();
 }
 
 void PageSetTitle(Page page_in, string title)
@@ -3029,94 +3060,13 @@ static
     int PATH_EXPLOSIONS = 37;
     int PATH_EXPLODING = 37;
     int PATH_EXPLODED = 37;
-}
-
-
-int __my_path_id_cached = -11;
-
-int initialiseMyPathID()
-{
-    string path_name = my_path();
-    
-    if (path_name == "" || path_name == "None")
-        __my_path_id_cached = PATH_NONE;
-    else if (path_name == "Teetotaler")
-        __my_path_id_cached = PATH_TEETOTALER;
-    else if (path_name == "Boozetafarian")
-        __my_path_id_cached = PATH_BOOZETAFARIAN;
-    else if (path_name == "Oxygenarian")
-        __my_path_id_cached = PATH_OXYGENARIAN;
-    else if (path_name == "Bees Hate You")
-        __my_path_id_cached = PATH_BEES_HATE_YOU;
-    else if (path_name == "Way of the Surprising Fist")
-        __my_path_id_cached = PATH_WAY_OF_THE_SURPRISING_FIST;
-    else if (path_name == "Trendy")
-        __my_path_id_cached = PATH_TRENDY;
-    else if (path_name == "Avatar of Boris")
-        __my_path_id_cached = PATH_AVATAR_OF_BORIS;
-    else if (path_name == "Bugbear Invasion")
-        __my_path_id_cached = PATH_BUGBEAR_INVASION;
-    else if (path_name == "Zombie Slayer")
-        __my_path_id_cached = PATH_ZOMBIE_SLAYER;
-    else if (path_name == "Class Act")
-        __my_path_id_cached = PATH_CLASS_ACT;
-    else if (path_name == "Avatar of Jarlsberg")
-        __my_path_id_cached = PATH_AVATAR_OF_JARLSBERG;
-    else if (path_name == "BIG!")
-        __my_path_id_cached = PATH_BIG;
-    else if (path_name == "KOLHS")
-        __my_path_id_cached = PATH_KOLHS;
-    else if (path_name == "Class Act II: A Class For Pigs")
-        __my_path_id_cached = PATH_CLASS_ACT_2;
-    else if (path_name == "Avatar of Sneaky Pete")
-        __my_path_id_cached = PATH_AVATAR_OF_SNEAKY_PETE;
-    else if (path_name == "Slow and Steady")
-        __my_path_id_cached = PATH_SLOW_AND_STEADY;
-    else if (path_name == "Heavy Rains")
-        __my_path_id_cached = PATH_HEAVY_RAINS;
-    else if (path_name == "Picky")
-        __my_path_id_cached = PATH_PICKY;
-    else if (path_name == "Standard")
-        __my_path_id_cached = PATH_STANDARD;
-    else if (path_name == "Actually Ed the Undying")
-        __my_path_id_cached = PATH_ACTUALLY_ED_THE_UNDYING;
-    else if (path_name == "One Crazy Random Summer")
-        __my_path_id_cached = PATH_ONE_CRAZY_RANDOM_SUMMER;
-    else if (path_name == "Community Service" || path_name == "25")
-        __my_path_id_cached = PATH_COMMUNITY_SERVICE;
-    else if (path_name == "Avatar of West of Loathing")
-        __my_path_id_cached = PATH_AVATAR_OF_WEST_OF_LOATHING;
-    else if (path_name == "The Source")
-        __my_path_id_cached = PATH_THE_SOURCE;
-    else if (path_name == "Nuclear Autumn" || path_name == "28")
-        __my_path_id_cached = PATH_NUCLEAR_AUTUMN;
-    else if (path_name == "Gelatinous Noob")
-        __my_path_id_cached = PATH_GELATINOUS_NOOB;
-    else if (path_name == "License to Adventure")
-        __my_path_id_cached = PATH_LICENSE_TO_ADVENTURE;
-    else if (path_name == "Live. Ascend. Repeat.")
-        __my_path_id_cached = PATH_LIVE_ASCEND_REPEAT;
-    else if (path_name == "Pocket Familiars" || path_name == "32")
-        __my_path_id_cached = PATH_POCKET_FAMILIARS;
-    else if (path_name == "G-Lover" || path_name == "33")
-        __my_path_id_cached = PATH_G_LOVER;
-    else if (path_name == "Disguises Delimit" || path_name == 34)
-        __my_path_id_cached = PATH_DISGUISES_DELIMIT;
-    else if (path_name == "Dark Gyffte")
-        __my_path_id_cached = PATH_DARK_GYFFTE;
-    else if (path_name == "36" || path_name == "Two Crazy Random Summer")
-        __my_path_id_cached = PATH_2CRS;
-    else if (path_name == "37" || path_name == "Kingdom of Exploathing")
-    	__my_path_id_cached = PATH_EXPLOSION;
-    else
-        __my_path_id_cached = PATH_UNKNOWN;
-    return __my_path_id_cached;
-}
-initialiseMyPathID();
-
-int my_path_id()
-{
-    return __my_path_id_cached;
+    int PATH_OF_THE_PLUMBER = 38;
+    int PATH_PLUMBER = 38;
+    int PATH_LUIGI = 38;
+    int PATH_MAMA_LUIGI = 38;
+    int PATH_MARIO = 38;
+    int PATH_LOW_KEY_SUMMER = 39;
+    int PATH_LOKI = 39;
 }
 
 float numeric_modifier_replacement(item it, string modifier)
@@ -5268,7 +5218,7 @@ static
 
 boolean __setting_output_debug_text = false;
 string __setting_grey_colour = "#87888A";
-string __asdon_version = "1.0.11";
+string __asdon_version = "1.0.12";
 //Library for checking if any given location is unlocked.
 //Similar to canadv.ash, except there's no code for using items and no URLs are (currently) visited. This limits our accuracy.
 //Currently, most locations are missing, sorry.
@@ -5440,6 +5390,7 @@ float [monster] appearance_rates_adjusted(location l)
     boolean appearance_rates_has_changed = mafiaIsPastRevision(14740); //not sure on the revision, but after a certain revision, appearance_rates() takes into account olfaction
     //FIXME domed city of ronald/grimacia doesn't take into account alien appearance rate
     float [monster] source = l.appearance_rates();
+    //Bug in appearance_rates(): if you banish all three monsters, it says they are -3 rate. In realiy, they are equal. 
     
     if (l == $location[the sleazy back alley]) //FIXME is mafia's data files incorrect, or the wiki's?
         source[$monster[none]] = MIN(MAX(0, 20 - combat_rate_modifier()), 100);
@@ -6055,6 +6006,7 @@ void locationAvailablePrivateInit()
 	effect [string] zones_unlocked_by_effect;
 	
 	locations_unlocked_by_item[$location[Cobb's Knob Laboratory]] = $item[Cobb's Knob lab key];
+	locations_unlocked_by_item[$location[The Knob Shaft]] = $item[Cobb's Knob lab key];
 	locations_unlocked_by_item[$location[Cobb's Knob Menagerie\, Level 1]] = $item[Cobb's Knob Menagerie key];
 	locations_unlocked_by_item[$location[Cobb's Knob Menagerie\, Level 2]] = $item[Cobb's Knob Menagerie key];
 	locations_unlocked_by_item[$location[Cobb's Knob Menagerie\, Level 3]] = $item[Cobb's Knob Menagerie key];
@@ -7866,22 +7818,51 @@ Record KramcoSausageFightInformation
     boolean goblin_will_appear;
     int turns_to_next_guaranteed_fight;
     float probability_of_sausage_fight;
+    float average_turns_to_next_sausage_fight_if_continually_equipped;
 };
+
+int KramcoCalculateTurnWillAlwaysSeeGoblin(int sausage_fights)
+{
+	int turn_will_always_see_goblin = 5 + sausage_fights * 3 + powi(max(0, sausage_fights - 5), 3) - 1;
+    if (sausage_fights <= 0)
+        turn_will_always_see_goblin = 0;
+    return turn_will_always_see_goblin;
+}
 
 KramcoSausageFightInformation KramcoCalculateSausageFightInformation()
 {
     KramcoSausageFightInformation information;
+    information.average_turns_to_next_sausage_fight_if_continually_equipped = -1.0;
     int last_sausage_turn = get_property_int("_lastSausageMonsterTurn"); //FIXME
     int sausage_fights = get_property_int("_sausageFights");
     
     
     
     //These ceilings are not correct; they are merely what I have spaded so far. The actual values are higher.
-    int [int] observed_ceilings = {0, 7, 10, 13, 16, 19, 23, 33, 54, 93, 154, 219, 220, 220, 220, 220, 220, 220, 220, 220, 220, 220, 220, 220, 220, 220, 220, 220, 220, 220};
-    
-    int turn_will_always_see_goblin = observed_ceilings[sausage_fights];
-    
     int delta = total_turns_played() - last_sausage_turn;
+    
+    int turn_will_always_see_goblin = -1;
+    
+    
+    boolean use_formula = true;
+    if (use_formula)
+    {
+    	//use formula, spaded by unknown:
+        //seems to match the ceiling data I have
+        //this line is fun - can you find the character gremlin that causes script parsing to break?
+        //turn_will_always_see_goblin = 5 + sausage_fights * 3 + powi(max(0, sausage_fights − 5), 3) - 1; //-1 for our system
+        turn_will_always_see_goblin = KramcoCalculateTurnWillAlwaysSeeGoblin(sausage_fights);
+    }
+    else
+    {
+        int [int] observed_ceilings = {0, 7, 10, 13, 16, 19, 23, 33, 54, 93, 154, 219, 220, 220, 220, 220, 220, 220, 220, 220, 220, 220, 220, 220, 220, 220, 220, 220, 220, 220};
+        //0,7,10,13,16,19,23,33,55,94,155,222,222,222,222,222,222,222,222,222,222,222,222,222,222,222,222,222,222,222
+        
+        turn_will_always_see_goblin = observed_ceilings[sausage_fights];
+    	if (!(observed_ceilings contains sausage_fights))
+     	   turn_will_always_see_goblin = -1;
+    }
+    
     
     
     information.turns_to_next_guaranteed_fight = MAX(0, turn_will_always_see_goblin - delta);
@@ -7889,18 +7870,82 @@ KramcoSausageFightInformation KramcoCalculateSausageFightInformation()
     if (information.turns_to_next_guaranteed_fight == 0 && CounterLookup("Semi-rare").CounterGetNextExactTurn() == 0)
     	information.turns_to_next_guaranteed_fight += 1;
     
-    if (!(observed_ceilings contains sausage_fights))
+    if (turn_will_always_see_goblin == -1)
          information.turns_to_next_guaranteed_fight = -1;
-      
+    
     if (turn_will_always_see_goblin > 1)
     {
-        //This is probably wrong?
-        float probability_each_incorrect = 1.0 / to_float(turn_will_always_see_goblin - 1);
-        information.probability_of_sausage_fight = clampf((delta + 1) * probability_each_incorrect, 0.0, 1.0);
+    	if (use_formula)
+        {
+        	information.probability_of_sausage_fight = clampf(to_float(delta + 1) / to_float(turn_will_always_see_goblin + 1), 0.0, 1.0);
+        }
+        else
+        {
+            //This is probably wrong?
+            float probability_each_incorrect = 1.0 / to_float(turn_will_always_see_goblin - 1);
+            information.probability_of_sausage_fight = clampf((delta + 1) * probability_each_incorrect, 0.0, 1.0);
+        }
     }
-    information.goblin_will_appear = information.turns_to_next_guaranteed_fight == 0;
+    information.goblin_will_appear = (information.turns_to_next_guaranteed_fight == 0);
     
+    //calculate average_turns_to_next_sausage_fight_if_continually_equipped:
+    if (true)
+    {
+        /*if (debug)
+        {
+        	print_html("Calculating average turns...");
+        }*/
+    	//Calculate average turns to next sausage fight if continually equipped:
+    	//Method:
+    	//Start at current turn
+        //Calculate probability of not encountering a goblin this turn. Multiply by previous value. If value is <= 0.5, stop. Otherwise, increment turn and loop.
+        //Then linerally interpret the result vs 0.5.
+        float failure_likelyhood_so_far = 1.0;
+        int calculation_delta_turn = 0;
+        int breakout = 500;
+        while (breakout > 0)
+        {
+            /*if (debug)
+            {
+                print_html("calculation_delta_turn = " + calculation_delta_turn + ", failure_likelyhood_so_far = " + failure_likelyhood_so_far);
+            }*/
+        	breakout -= 1;
+            float previous_failure_likelyhood = failure_likelyhood_so_far;
+        	float probability_of_sausage_fight = clampf(to_float((calculation_delta_turn + delta) + 1) / to_float(turn_will_always_see_goblin + 1), 0.0, 1.0);
+            failure_likelyhood_so_far *= (1.0 - probability_of_sausage_fight);
+            if (failure_likelyhood_so_far <= 0.5)
+            {
+            	//At critical point.
+                //Linear interpolation that is probably wrong, I never paid attention to statistics:
+                float average_turns = calculation_delta_turn;
+                float to_half = (previous_failure_likelyhood - 0.5);
+                float total_delta = previous_failure_likelyhood - failure_likelyhood_so_far;
+                
+                
+                /*if (debug)
+                {
+                    print_html("vfailure_likelyhood_so_far = " + failure_likelyhood_so_far + ", average_turns before changing = " + average_turns);
+                }*/
+                if (total_delta != 0.0)
+	                average_turns += clampf(to_half / total_delta, 0.0, 1.0);
+                 
+                 information.average_turns_to_next_sausage_fight_if_continually_equipped = average_turns;
+                 break;
+            }
+            else
+            {
+            	calculation_delta_turn += 1;
+            }
+        }
+    }
     
+    /*if (debug)
+    {
+        print_html("sausage_fights = " + sausage_fights + " delta = " + delta + " turn_will_always_see_goblin = " + turn_will_always_see_goblin);
+        print_html("information.turns_to_next_guaranteed_fight = " + information.turns_to_next_guaranteed_fight);
+        print_html("information.probability_of_sausage_fight = " + information.probability_of_sausage_fight);
+        print_html("information.average_turns_to_next_sausage_fight_if_continually_equipped = " + information.average_turns_to_next_sausage_fight_if_continually_equipped);
+    }*/
     return information;
 }
 
