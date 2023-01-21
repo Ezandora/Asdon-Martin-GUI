@@ -3073,7 +3073,7 @@ float numeric_modifier_replacement(item it, string modifier)
 {
     string modifier_lowercase = modifier.to_lower_case();
     float additional = 0;
-    if (my_path_id() == PATH_G_LOVER && !it.contains_text("g") && !it.contains_text("G"))
+    if (my_path().id == PATH_G_LOVER && !it.contains_text("g") && !it.contains_text("G"))
     	return 0.0;
     if (it == $item[your cowboy boots])
     {
@@ -3318,7 +3318,7 @@ boolean mafiaIsPastRevision(int revision_number)
 boolean have_familiar_replacement(familiar f)
 {
     //have_familiar bugs in avatar of sneaky pete for now, so:
-    if (my_path_id() == PATH_AVATAR_OF_BORIS || my_path_id() == PATH_AVATAR_OF_JARLSBERG || my_path_id() == PATH_AVATAR_OF_SNEAKY_PETE)
+    if (my_path().id == PATH_AVATAR_OF_BORIS || my_path().id == PATH_AVATAR_OF_JARLSBERG || my_path().id == PATH_AVATAR_OF_SNEAKY_PETE)
         return false;
     return f.have_familiar();
 }
@@ -3327,11 +3327,11 @@ boolean have_familiar_replacement(familiar f)
 boolean familiar_is_usable(familiar f)
 {
     //r13998 has most of these
-    if (my_path_id() == PATH_AVATAR_OF_BORIS || my_path_id() == PATH_AVATAR_OF_JARLSBERG || my_path_id() == PATH_AVATAR_OF_SNEAKY_PETE || my_path_id() == PATH_ACTUALLY_ED_THE_UNDYING || my_path_id() == PATH_LICENSE_TO_ADVENTURE || my_path_id() == PATH_POCKET_FAMILIARS || my_path_id() == PATH_VAMPIRE)
+    if (my_path().id == PATH_AVATAR_OF_BORIS || my_path().id == PATH_AVATAR_OF_JARLSBERG || my_path().id == PATH_AVATAR_OF_SNEAKY_PETE || my_path().id == PATH_ACTUALLY_ED_THE_UNDYING || my_path().id == PATH_LICENSE_TO_ADVENTURE || my_path().id == PATH_POCKET_FAMILIARS || my_path().id == PATH_VAMPIRE)
         return false;
     if (!is_unrestricted(f))
         return false;
-    if (my_path_id() == PATH_G_LOVER && !f.contains_text("g") && !f.contains_text("G"))
+    if (my_path().id == PATH_G_LOVER && !f.contains_text("g") && !f.contains_text("G"))
         return false;
     //On second thought, this is terrible:
 	/*int single_familiar_run = get_property_int("singleFamiliarRun");
@@ -3341,12 +3341,12 @@ boolean familiar_is_usable(familiar f)
 			return true;
 		return false;
 	}*/
-	if (my_path_id() == PATH_TRENDY)
+	if (my_path().id == PATH_TRENDY)
 	{
 		if (!is_trendy(f))
 			return false;
 	}
-	else if (my_path_id() == PATH_BEES_HATE_YOU)
+	else if (my_path().id == PATH_BEES_HATE_YOU)
 	{
 		if (f.to_string().contains_text("b") || f.to_string().contains_text("B")) //bzzzz!
 			return false; //so not green
@@ -3361,7 +3361,7 @@ boolean skill_is_usable(skill s)
         return false;
     if (!s.is_unrestricted())
         return false;
-    if (my_path_id() == PATH_G_LOVER && (!s.passive || s == $skill[meteor lore]) && !s.contains_text("g") && !s.contains_text("G"))
+    if (my_path().id == PATH_G_LOVER && (!s.passive || s == $skill[meteor lore]) && !s.contains_text("g") && !s.contains_text("G"))
     	return false;
     if ($skills[rapid prototyping] contains s)
         return $item[hand turkey outline].is_unrestricted();
@@ -3391,9 +3391,9 @@ boolean item_is_usable(item it)
 {
     if (!it.is_unrestricted())
         return false;
-    if (my_path_id() == PATH_G_LOVER && !it.contains_text("g") && !it.contains_text("G"))
+    if (my_path().id == PATH_G_LOVER && !it.contains_text("g") && !it.contains_text("G"))
         return false;
-    if (my_path_id() == PATH_BEES_HATE_YOU && (it.contains_text("b") || it.contains_text("B")))
+    if (my_path().id == PATH_BEES_HATE_YOU && (it.contains_text("b") || it.contains_text("B")))
     	return false;
 	return true;
 }
@@ -3407,7 +3407,7 @@ int usable_amount(item it)
 
 boolean effect_is_usable(effect e)
 {
-    if (my_path_id() == PATH_G_LOVER && !e.contains_text("g") && !e.contains_text("G"))
+    if (my_path().id == PATH_G_LOVER && !e.contains_text("g") && !e.contains_text("G"))
         return false;
     return true;
 }
@@ -3685,7 +3685,7 @@ int substatsForLevel(int level)
 int availableFullness()
 {
 	int limit = fullness_limit();
-    if (my_path_id() == PATH_ACTUALLY_ED_THE_UNDYING && limit == 0 && $skill[Replacement Stomach].have_skill())
+    if (my_path().id == PATH_ACTUALLY_ED_THE_UNDYING && limit == 0 && $skill[Replacement Stomach].have_skill())
     {
         limit += 5;
     }
@@ -3695,7 +3695,7 @@ int availableFullness()
 int availableDrunkenness()
 {
     int limit = inebriety_limit();
-    if (my_path_id() == PATH_ACTUALLY_ED_THE_UNDYING && limit == 0 && $skill[Replacement Liver].have_skill())
+    if (my_path().id == PATH_ACTUALLY_ED_THE_UNDYING && limit == 0 && $skill[Replacement Liver].have_skill())
     {
     	limit += 5;
     }
@@ -3706,7 +3706,7 @@ int availableDrunkenness()
 int availableSpleen()
 {
 	int limit = spleen_limit();
-	if (my_path_id() == PATH_ACTUALLY_ED_THE_UNDYING && limit == 0)
+	if (my_path().id == PATH_ACTUALLY_ED_THE_UNDYING && limit == 0)
 	{
         limit += 5; //always true
 		//mafia resets the limits to zero in the underworld because it does, so anti-mafia:
@@ -4263,7 +4263,7 @@ int monster_level_adjustment_for_location(location l)
         ml += 30;
     }
     
-    if (my_path_id() == PATH_HEAVY_RAINS)
+    if (my_path().id == PATH_HEAVY_RAINS)
     {
         //complicated:
         //First, cancel out the my_location() rain:
@@ -5148,7 +5148,7 @@ int [string] activeBanishNameCountsForLocation(location l)
     {
         if (names contains m)
             banish_name_counts[names[m]] += 1;
-        if (my_path_id() == PATH_ONE_CRAZY_RANDOM_SUMMER)
+        if (my_path().id == PATH_ONE_CRAZY_RANDOM_SUMMER)
         {
             foreach m2 in names
             {
@@ -5659,13 +5659,13 @@ boolean locationAvailablePrivateCheck(location loc, Error able_to_find)
 	
 	if (zone == "KOL High School")
 	{
-		if (my_path_id() == PATH_KOLHS)
+		if (my_path().id == PATH_KOLHS)
 			return true;
 		return false;
 	}
 	if (zone == "Mothership")
 	{
-		if (my_path_id() == PATH_BUGBEAR_INVASION)
+		if (my_path().id == PATH_BUGBEAR_INVASION)
 			return true;
 		return false;
 	}
@@ -6016,7 +6016,7 @@ void locationAvailablePrivateInit()
 	//locations_unlocked_by_item[$location[The Haunted Gallery]] = $item[spookyraven gallery key];
 	locations_unlocked_by_item[$location[The Castle in the Clouds in the Sky (Basement)]] = $item[S.O.C.K.];
 	locations_unlocked_by_item[$location[the hole in the sky]] = $item[steam-powered model rocketship];
-    if (my_path_id() == PATH_EXPLOSION)
+    if (my_path().id == PATH_EXPLOSION)
     {
         locations_unlocked_by_item[$location[The Castle in the Clouds in the Sky (Basement)]] = $item[none];
         locations_unlocked_by_item[$location[the hole in the sky]] = $item[none];
@@ -7109,7 +7109,7 @@ void CountersParseProperty(string property_name, Counter [string] counters, bool
         counters[final_name] = c;
     }
     
-    /*if (my_path_id() == PATH_LIVE_ASCEND_REPEAT && !(counters contains "Semi-rare"))
+    /*if (my_path().id == PATH_LIVE_ASCEND_REPEAT && !(counters contains "Semi-rare"))
     {
         //We already have this information:
         //(won't always be accurate)
@@ -7248,7 +7248,7 @@ boolean CounterWanderingMonsterMayHitNextTurn()
 {
     monster last_monster = get_property_monster("lastEncounter");
     
-    if (my_path_id() == PATH_THE_SOURCE)
+    if (my_path().id == PATH_THE_SOURCE)
     {
         int interval = get_property_int("sourceInterval");
         if (interval == 200 || interval == 400)
@@ -7271,7 +7271,7 @@ boolean CounterWanderingMonsterMayHitNextTurn()
     //FIXME use CounterWanderingMonsterMayHitInXTurns to implement this once we're sure it works
     foreach s in __wandering_monster_counter_names
     {
-    	if (s == "WoL Monster" && my_path_id() != PATH_AVATAR_OF_WEST_OF_LOATHING) continue; //mafia bug
+    	if (s == "WoL Monster" && my_path().id != PATH_AVATAR_OF_WEST_OF_LOATHING) continue; //mafia bug
         if (s == "Romantic Monster" && get_property_int("_romanticFightsLeft") == 0) //If mafia's tracking doesn't recognise the monster, then we can override by decrementing the romantic fights left. Added because of the machine elf tunnels.
             continue;
         Counter c = CounterLookup(s);
@@ -7280,7 +7280,7 @@ boolean CounterWanderingMonsterMayHitNextTurn()
             return true;
         }
     }
-    if (get_property_int("_romanticFightsLeft") > 0 && !CounterLookup("Romantic Monster").CounterExists() && my_path_id() != PATH_ONE_CRAZY_RANDOM_SUMMER) //mafia will clear the romantic monster window if it goes out of bounds
+    if (get_property_int("_romanticFightsLeft") > 0 && !CounterLookup("Romantic Monster").CounterExists() && my_path().id != PATH_ONE_CRAZY_RANDOM_SUMMER) //mafia will clear the romantic monster window if it goes out of bounds
         return true;
     
     //Disabled for now, because this is hard to predict:
@@ -7303,11 +7303,11 @@ boolean CounterWanderingMonsterMayHitInXTurns(int turns, boolean only_detect_by_
         return true;
     foreach s in __wandering_monster_counter_names
     {
-        if (s == "WoL Monster" && my_path_id() != PATH_AVATAR_OF_WEST_OF_LOATHING) continue; //mafia bug
+        if (s == "WoL Monster" && my_path().id != PATH_AVATAR_OF_WEST_OF_LOATHING) continue; //mafia bug
         if (CounterLookup(s).CounterExists() && CounterLookup(s).CounterMayHitInXTurns(turns))
             return true;
     }
-    //if (get_property_int("_romanticFightsLeft") > 0 && !CounterLookup("Romantic Monster").CounterExists() && my_path_id() != PATH_ONE_CRAZY_RANDOM_SUMMER) //mafia will clear the romantic monster window if it goes out of bounds
+    //if (get_property_int("_romanticFightsLeft") > 0 && !CounterLookup("Romantic Monster").CounterExists() && my_path().id != PATH_ONE_CRAZY_RANDOM_SUMMER) //mafia will clear the romantic monster window if it goes out of bounds
         //return true;
     return false;
 }
@@ -7321,7 +7321,7 @@ boolean CounterWanderingMonsterWillHitInXTurns(int turns)
     //CounterWillHitExactlyInTurnRange
     foreach s in __wandering_monster_counter_names
     {
-        if (s == "WoL Monster" && my_path_id() != PATH_AVATAR_OF_WEST_OF_LOATHING) continue; //mafia bug
+        if (s == "WoL Monster" && my_path().id != PATH_AVATAR_OF_WEST_OF_LOATHING) continue; //mafia bug
         if (CounterLookup(s).CounterExists() && CounterLookup(s).CounterWillHitExactlyInTurnRange(0, turns))
             return true;
     }
@@ -7333,7 +7333,7 @@ Counter [int] CounterWanderingMonsterWindowsActiveInXTurns(int turns)
     Counter [int] result;
     foreach s in __wandering_monster_counter_names
     {
-        if (s == "WoL Monster" && my_path_id() != PATH_AVATAR_OF_WEST_OF_LOATHING) continue; //mafia bug
+        if (s == "WoL Monster" && my_path().id != PATH_AVATAR_OF_WEST_OF_LOATHING) continue; //mafia bug
         Counter c = CounterLookup(s);
         if (c.CounterExists() && c.CounterMayHitInXTurns(turns))
             result[result.count()] = c;
@@ -7348,7 +7348,7 @@ Counter [int] CounterWanderingMonsterWindowsActiveNextTurn()
         return result;
     foreach s in __wandering_monster_counter_names
     {
-        if (s == "WoL Monster" && my_path_id() != PATH_AVATAR_OF_WEST_OF_LOATHING) continue; //mafia bug
+        if (s == "WoL Monster" && my_path().id != PATH_AVATAR_OF_WEST_OF_LOATHING) continue; //mafia bug
         Counter c = CounterLookup(s);
         if (c.CounterExists() && c.CounterMayHitNextTurn())
             result[result.count()] = c;
@@ -7386,7 +7386,7 @@ boolean CounterWanderingMonsterCountersHaveRange()
 {
     foreach s in __wandering_monster_counter_names
     {
-        if (s == "WoL Monster" && my_path_id() != PATH_AVATAR_OF_WEST_OF_LOATHING) continue; //mafia bug
+        if (s == "WoL Monster" && my_path().id != PATH_AVATAR_OF_WEST_OF_LOATHING) continue; //mafia bug
         Counter c = CounterLookup(s);
         if (!c.CounterExists())
             continue;
@@ -7592,7 +7592,7 @@ item [int] asdonMartinGenerateListOfFuelables()
     blacklist[$item[white pixel]] = true; //no!
     blacklist[$item[cashew]] = true;
     
-    if (my_path_id() != PATH_LICENSE_TO_ADVENTURE && inebriety_limit() > 0) //FIXME the test for can drink just about
+    if (my_path().id != PATH_LICENSE_TO_ADVENTURE && inebriety_limit() > 0) //FIXME the test for can drink just about
     {
         foreach it in $items[bottle of gin,bottle of rum,bottle of vodka,bottle of whiskey,bottle of tequila] //too useful for crafting?
             blacklist[it] = true;
@@ -7613,7 +7613,7 @@ item [int] asdonMartinGenerateListOfFuelables()
                 continue;
             }
         }
-        if (my_path_id() == PATH_LICENSE_TO_ADVENTURE && false)
+        if (my_path().id == PATH_LICENSE_TO_ADVENTURE && false)
         {
             if (it.inebriety > 0 && it.image == "martini.gif")
                 continue;
@@ -7645,7 +7645,7 @@ item [int] asdonMartinGenerateListOfFuelables()
             
         float soda_bread_efficiency = to_float($item[wad of dough].npc_price() + $item[soda water].npc_price()) / 6.0;
         if (soda_bread_efficiency < 1.0) soda_bread_efficiency = 100000.0;
-        if (it.autosell_price() > 0 && it.autosell_price().to_float() / average_adventures > soda_bread_efficiency && my_path_id() != PATH_EXPLOSIONS)
+        if (it.autosell_price() > 0 && it.autosell_price().to_float() / average_adventures > soda_bread_efficiency && my_path().id != PATH_EXPLOSIONS)
         {
             continue;
         }
@@ -8497,7 +8497,7 @@ buffer generateFuelText()
     //Generate reserve:
     int [item] reserve_list;
     boolean [item] craftable_blacklist;
-    if (!get_property_boolean("kingLiberated") && my_path_id() != PATH_COMMUNITY_SERVICE)
+    if (!get_property_boolean("kingLiberated") && my_path().id != PATH_COMMUNITY_SERVICE)
     {
         //Quest reserves:
         if (!(QuestState("questL11Palindome").mafia_internal_step >= 5 || $item[wet stunt nut stew].available_amount() > 0))
@@ -8577,7 +8577,7 @@ buffer generateFuelText()
         if ($items[bean burrito,spicy bean burrito,insanely spicy bean burrito,enchanted bean burrito,spicy enchanted bean burrito,insanely spicy enchanted bean burrito,jumping bean burrito,spicy jumping bean burrito,insanely spicy jumping bean burrito] contains it) //barrels! you probably won't eat them.
             should_select = true;
             
-        if (my_path_id() == PATH_G_LOVER && it.item_is_usable() && (it.fullness > 0 || it.inebriety > 0))
+        if (my_path().id == PATH_G_LOVER && it.item_is_usable() && (it.fullness > 0 || it.inebriety > 0))
             should_select = false; //very few consumables
         if (!it.item_is_usable())
             should_select = true;
