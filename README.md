@@ -7,7 +7,7 @@ Installation
 ----------------
 Run this command in the graphical CLI in KoLmafia:
 <pre>
-svn checkout https://github.com/Ezandora/Asdon-Martin-GUI/branches/Release/
+git checkout https://github.com/Ezandora/Asdon-Martin-GUI.git
 </pre>
 [Requires r18256 of mafia or later.](http://builds.kolmafia.us/job/Kolmafia/lastSuccessfulBuild/)
 
