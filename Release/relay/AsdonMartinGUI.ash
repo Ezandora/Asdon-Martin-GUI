@@ -2697,12 +2697,13 @@ boolean numberIsInRangeInclusive(int v, int min, int max)
 
 
 
-buffer to_buffer(string str)
+//now built-in:
+/*buffer to_buffer(string str)
 {
 	buffer result;
 	result.append(str);
 	return result;
-}
+}*/
 
 buffer copyBuffer(buffer buf)
 {
@@ -3285,6 +3286,9 @@ static
     int PATH_QUANTUM_TERRARIUM = 42;
     int PATH_QUANTUM = 42;
     int PATH_WILDFIRE = 43;
+    //missing paths here
+    int PATH_SHRUNKEN_ADVENTURER = 49;
+    int PATH_SMALL = 49;
 }
 
 float numeric_modifier_replacement(item it, string modifier_name)
@@ -3698,6 +3702,15 @@ boolean [skill] makeConstantSkillArrayMutable(boolean [skill] array)
 boolean [effect] makeConstantEffectArrayMutable(boolean [effect] array)
 {
     boolean [effect] result;
+    foreach k in array
+        result[k] = array[k];
+    
+    return result;
+}
+
+boolean [int] makeConstantIntArrayMutable(boolean [int] array)
+{
+    boolean [int] result;
     foreach k in array
         result[k] = array[k];
     
@@ -5804,7 +5817,7 @@ static
 
 boolean __setting_output_debug_text = false;
 string __setting_grey_colour = "#87888A";
-string __asdon_version = "1.0.13";
+string __asdon_version = "1.0.14";
 //Library for checking if any given location is unlocked.
 //Similar to canadv.ash, except there's no code for using items and no URLs are (currently) visited. This limits our accuracy.
 //Currently, most locations are missing, sorry.
@@ -9650,10 +9663,12 @@ void handleRelayRequest()
 	buffer gui = generateGUI();
 	
 	buffer full_replacement_text;
-	full_replacement_text.append("<b>Asdon Martin v" + __asdon_version + "</b></td></tr><tr><td style=\"padding: 5px; border: 1px solid " + get_property("defaultBorderColor") + ";\">");
+	full_replacement_text.append("<b style=\"color:white\">Asdon Martin v" + __asdon_version + "</b></td></tr><tr><td style=\"padding: 5px; border: 1px solid " + get_property("defaultBorderColor") + ";\">");
 	full_replacement_text.append(gui);
 	full_replacement_text.append("</td></tr><tr><td height=4></td></tr></table>");
-	matcher matchr = create_matcher("<b>Results:</b></td></tr><tr><td style=.padding: 5px; border: 1px [^;]*;.>(.*?)</td></tr><tr><td height=4></td></tr></table>", page_text);
+	
+	//matcher matchr = create_matcher("<b>Results:</b></td></tr><tr><td style=.padding: 5px; border: 1px [^;]*;.>(.*?)</td></tr><tr><td height=4></td></tr></table>", page_text);
+	matcher matchr = create_matcher("<b[^>]*>Results:</b>.*?</table>", page_text);
 	string out_page_text = replace_first(matchr, full_replacement_text);
 	write(out_page_text);
 }
